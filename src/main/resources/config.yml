@@ -1,0 +1,11 @@
+meteorite:
+  enabled: true
+  world: "world"
+  min_players_enabled: true
+  min_players: 20
+  max:
+    x: 1500
+    z: 1500
+  min:
+    x: -1500
+    z: -1500
