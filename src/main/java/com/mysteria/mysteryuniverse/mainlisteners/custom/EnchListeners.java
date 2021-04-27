@@ -1,8 +1,10 @@
 package com.mysteria.mysteryuniverse.mainlisteners.custom;
 
 import com.destroystokyo.paper.MaterialTags;
+import com.destroystokyo.paper.ParticleBuilder;
 import com.mysteria.customapi.effects.CustomEffectType;
 import com.mysteria.customapi.enchantments.CustomEnchantment;
+import com.mysteria.customapi.sounds.CustomSound;
 import com.mysteria.mysteryuniverse.MysteryUniversePlugin;
 import com.mysteria.utils.MysteriaUtils;
 import com.mysteria.utils.NamedColor;
@@ -22,11 +24,13 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemBreakEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.util.Vector;
@@ -35,9 +39,13 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.text.DecimalFormat;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class EnchListeners implements Listener {
+
+	private final Map<UUID, Long> COOLDOWN_EMPRESS_BLESSING = new HashMap<>();
 
 	public EnchListeners() {
 		Bukkit.getPluginManager().registerEvents(this, MysteryUniversePlugin.getInstance());
@@ -223,7 +231,7 @@ public class EnchListeners implements Listener {
 			armorStand.setInvulnerable(true);
 			armorStand.setDisabledSlots(EquipmentSlot.values());
 			armorStand.setCustomNameVisible(true);
-			armorStand.customName(Component.text(line, color));
+			armorStand.customName(Component.text(finalDMG != 0 ? line : "Absorbed", color));
 
 			new BukkitRunnable() {
 				@Override
@@ -236,6 +244,41 @@ public class EnchListeners implements Listener {
 
 		}
 
+	}
+
+	@EventHandler(ignoreCancelled = true)
+	private void empressBlessing(EntityDamageEvent e) {
+		if (e.getFinalDamage() != 0 && e.getEntity() instanceof LivingEntity) {
+			LivingEntity victim = (LivingEntity) e.getEntity();
+
+			// EMPRESS'S BLESSING PART
+			if (!victim.hasPotionEffect(PotionEffectType.ABSORPTION)) {
+				long cooldown = COOLDOWN_EMPRESS_BLESSING.getOrDefault(victim.getUniqueId(), 0L);
+				if (MysteriaUtils.checkCooldown(cooldown)) {
+					int level = getTotalPercent(victim, CustomEnchantment.EMPRESS_BLESSING);
+					if (level > 0) {
+						PotionEffect effect = PotionEffectType.ABSORPTION
+								.createEffect(20 * 6, level - 1);
+						victim.addPotionEffect(effect);
+						CustomSound.play(victim.getLocation(), CustomSound.ENCHANTMENT_EMPRESS_BLESSING, 0.25f, 1);
+						COOLDOWN_EMPRESS_BLESSING.put(victim.getUniqueId(), MysteriaUtils.createCooldown(120));
+						wingDrawAngelWings(victim.getLocation());
+					}
+				}
+			}
+		}
+	}
+
+	@EventHandler
+	private void onEmpressBlessingBreak(PlayerItemBreakEvent e) {
+		boolean hasEnchant = hasEnchant(e.getBrokenItem(), CustomEnchantment.EMPRESS_BLESSING);
+		if (hasEnchant) {
+			Player p = e.getPlayer();
+			PotionEffect effect = CustomEffectType.CURSE.createEffect(15 * 20, 0);
+			p.addPotionEffect(effect);
+			p.getWorld().strikeLightningEffect(p.getLocation());
+			p.getWorld().playSound(p.getLocation(), Sound.ITEM_TRIDENT_THUNDER, SoundCategory.MASTER, 3, 2);
+		}
 	}
 
 	@Nonnull
@@ -391,6 +434,90 @@ public class EnchListeners implements Listener {
 		y = v.getX() * sin + v.getY() * cos;
 		return v.setX(x).setY(y);
 	}
+
+	private boolean[][] getWingShape() {
+		boolean x = true;
+		boolean o = false;
+		return new boolean[][]{
+				{o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o},
+				{o, o, o, x, o, o, o, o, o, o, o, o, x, o, o, o},
+				{o, o, x, x, o, o, o, o, o, o, o, o, x, x, o, o},
+				{o, x, x, x, x, o, o, o, o, o, o, x, x, x, x, o},
+				{o, x, x, x, x, o, o, o, o, o, o, x, x, x, x, o},
+				{o, o, x, x, x, x, o, o, o, o, x, x, x, x, o, o},
+				{o, o, o, x, x, x, x, o, o, x, x, x, x, o, o, o},
+				{o, o, o, o, x, x, x, x, x, x, x, x, o, o, o, o},
+				{o, o, o, o, o, x, x, x, x, x, x, o, o, o, o, o},
+				{o, o, o, o, o, o, x, x, x, x, o, o, o, o, o, o},
+				{o, o, o, o, o, x, x, o, o, x, x, o, o, o, o, o},
+				{o, o, o, o, x, x, x, o, o, x, x, x, o, o, o, o},
+				{o, o, o, o, x, x, o, o, o, o, x, x, o, o, o, o},
+				{o, o, o, o, x, o, o, o, o, o, o, x, o, o, o, o},
+				{o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o},
+		};
+	}
+
+	private void wingDrawAngelWings(@Nonnull Location location) {
+		double space = 0.20;
+		double defX = location.getX() - (space * getWingShape()[0].length / 2) + space;
+		double x = defX;
+		double y = location.clone().getY() + 2.8;
+		double fire = -((location.getYaw() + 180) / 60);
+		fire += (location.getYaw() < -180 ? 3.25 : 2.985);
+
+		Color color = MysteriaUtils.toBukkitColor(NamedColor.TURBO);
+		for (boolean[] booleans : getWingShape()) {
+			for (boolean aBoolean : booleans) {
+				if (aBoolean) {
+
+					Location target = location.clone();
+					target.setX(x);
+					target.setY(y);
+
+					Vector v = target.toVector().subtract(location.toVector());
+					Vector v2 = wingGetBackVector(location);
+					v = wingRotateAroundAxisY(v, fire);
+					v2.setY(0).multiply(-0.5);
+
+					location.add(v);
+					location.add(v2);
+					for (int k = 0; k < 3; k++)
+						new ParticleBuilder(Particle.REDSTONE)
+								.color(color)
+								.location(location)
+								.spawn();
+					location.subtract(v2);
+					location.subtract(v);
+				}
+				x += space;
+			}
+			y -= space;
+			x = defX;
+		}
+	}
+
+	private Vector wingRotateAroundAxisY(Vector v, double fire) {
+		double x, z, cos, sin;
+		cos = Math.cos(fire);
+		sin = Math.sin(fire);
+		x = v.getX() * cos + v.getZ() * sin;
+		z = v.getX() * -sin + v.getZ() * cos;
+		return v.setX(x).setZ(z);
+	}
+
+	private Vector wingGetBackVector(Location loc) {
+		final float newZ = (float) (loc.getZ() + (1 * Math.sin(Math.toRadians(loc.getYaw() + 90))));
+		final float newX = (float) (loc.getX() + (1 * Math.cos(Math.toRadians(loc.getYaw() + 90))));
+		return new Vector(newX - loc.getX(), 0, newZ - loc.getZ());
+	}
+
+
+
+
+
+
+
+
 
 
 
