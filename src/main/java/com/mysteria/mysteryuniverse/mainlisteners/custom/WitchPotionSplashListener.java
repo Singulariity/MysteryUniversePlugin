@@ -1,10 +1,12 @@
 package com.mysteria.mysteryuniverse.mainlisteners.custom;
 
+import com.google.common.collect.ImmutableList;
 import com.mysteria.customapi.effects.CustomEffect;
 import com.mysteria.customapi.effects.CustomEffectType;
 import com.mysteria.mysteryuniverse.MysteryUniversePlugin;
 import com.mysteria.utils.MysteriaUtils;
 import net.minecraft.server.v1_16_R3.MobEffectInfo;
+import net.minecraft.server.v1_16_R3.MobEffectList;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -19,11 +21,18 @@ import org.bukkit.projectiles.ProjectileSource;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class WitchPotionSplashListener implements Listener {
 
+	private final List<PotionEffectType> WITCH_EFFECTS;
+
 	public WitchPotionSplashListener() {
 		Bukkit.getPluginManager().registerEvents(this, MysteryUniversePlugin.getInstance());
+		WITCH_EFFECTS = new ArrayList<>(Arrays.asList(PotionEffectType.values()));
+		WITCH_EFFECTS.removeIf(type -> type == CustomEffectType.BROKEN_LEG);
+		WITCH_EFFECTS.removeIf(type -> !(type instanceof CustomEffect) ||
+				((CustomEffect) type).getInfo() == MobEffectInfo.BENEFICIAL);
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -33,12 +42,8 @@ public class WitchPotionSplashListener implements Listener {
 
 		 if (source instanceof Witch) {
 
-			if (MysteriaUtils.chance(30)) {
-				ArrayList<PotionEffectType> effectTypes = new ArrayList<>(Arrays.asList(PotionEffectType.values()));
-				effectTypes.removeIf(type -> !(type instanceof CustomEffect) ||
-						((CustomEffect) type).getInfo() == MobEffectInfo.BENEFICIAL);
-
-				PotionEffectType type = effectTypes.get(effectTypes.size() - 1);
+			if (MysteriaUtils.chance(40)) {
+				PotionEffectType type = WITCH_EFFECTS.get(MysteriaUtils.getRandom(0, Math.max(WITCH_EFFECTS.size() - 1, 0)));
 				int duration = type == CustomEffectType.DOOM ? 1080 * 20 : 10 * 20;
 				PotionEffect effect = new PotionEffect(type, duration, 0);
 
