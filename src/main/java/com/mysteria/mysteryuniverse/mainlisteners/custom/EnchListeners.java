@@ -23,12 +23,14 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemBreakEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -46,6 +48,7 @@ import java.util.UUID;
 public class EnchListeners implements Listener {
 
 	private final Map<UUID, Long> COOLDOWN_EMPRESS_BLESSING = new HashMap<>();
+	private final Map<UUID, Long> COOLDOWN_EXECUTIONER = new HashMap<>();
 
 	public EnchListeners() {
 		Bukkit.getPluginManager().registerEvents(this, MysteryUniversePlugin.getInstance());
@@ -63,35 +66,53 @@ public class EnchListeners implements Listener {
 
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	private void onAttack(EntityDamageByEntityEvent e) {
-		boolean isPiercingHit = false;
-		boolean isCriticalHit = false;
+		LivingEntity damager = null;
+		LivingEntity victim = null;
+		AbstractArrow projectile = null;
 
-		if (e.getEntity() instanceof LivingEntity && e.getDamager() instanceof LivingEntity) {
-			LivingEntity damager = (LivingEntity) e.getDamager();
-			LivingEntity victim = (LivingEntity) e.getEntity();
-
-			// Decrease damage 40% if Player vs. Player
-			if (damager instanceof Player && victim instanceof Player) {
-				if (e.getCause() == EntityDamageEvent.DamageCause.ENTITY_ATTACK ||
-						e.getCause() == EntityDamageEvent.DamageCause.ENTITY_SWEEP_ATTACK) {
-					e.setDamage(e.getDamage() * 0.6);
-				}
+		if (e.getEntity() instanceof LivingEntity) {
+			victim = (LivingEntity) e.getEntity();
+		}
+		if (e.getDamager() instanceof LivingEntity) {
+			damager = (LivingEntity) e.getDamager();
+		}
+		else if (e.getDamager() instanceof AbstractArrow) {
+			projectile = (AbstractArrow) e.getDamager();
+			if (projectile.getShooter() instanceof LivingEntity) {
+				damager = (LivingEntity) projectile.getShooter();
 			}
+		}
 
-			if (e.getCause() == EntityDamageEvent.DamageCause.ENTITY_ATTACK) {
+		if (victim != null) {
 
-				EntityEquipment damagerEquipment = damager.getEquipment();
-				if (damagerEquipment != null) {
+			boolean isPiercingHit = false;
+			boolean isCriticalHit = false;
 
-					// PIERCING HIT PART
-					if (victim.getEquipment() != null) {
+			if (damager != null) {
 
-						int piercing_chance = getTotalPercent(damager, CustomEnchantment.PIERCING_CHANCE);
-						isPiercingHit = MysteriaUtils.chance(piercing_chance);
+				if (e.getCause() == EntityDamageEvent.DamageCause.ENTITY_ATTACK ||
+						e.getCause() == EntityDamageEvent.DamageCause.ENTITY_SWEEP_ATTACK ||
+						e.getCause() == EntityDamageEvent.DamageCause.PROJECTILE) {
+
+					EntityEquipment damagerEquipment = damager.getEquipment();
+					if (damagerEquipment != null) {
+						ItemStack tool = damagerEquipment.getItemInMainHand();
+
+						// PIERCING HIT PART
+						isPiercingHit = e.getCause() != EntityDamageEvent.DamageCause.ENTITY_SWEEP_ATTACK &&
+								MysteriaUtils.chance(getTotalPercent(damager, CustomEnchantment.PIERCING_CHANCE));
 
 						if (!isPiercingHit) {
-							ItemStack tool = damager.getEquipment().getItemInMainHand();
-							if (MaterialTags.SWORDS.isTagged(tool)) {
+							if (e.getCause() == EntityDamageEvent.DamageCause.PROJECTILE) {
+								double defence;
+								if (projectile instanceof Trident) {
+									defence = getTotalPercent(victim, CustomEnchantment.TRIDENT_DEFENCE);
+								} else {
+									defence = getTotalPercent(victim, CustomEnchantment.ARROW_DEFENCE);
+								}
+								decreaseDamagePercent(e, defence);
+							}
+							else if (MaterialTags.SWORDS.isTagged(tool)) {
 								double defence = getTotalPercent(victim, CustomEnchantment.SWORD_DEFENCE);
 								decreaseDamagePercent(e, defence);
 							}
@@ -107,86 +128,68 @@ public class EnchListeners implements Listener {
 							makePiercingHit(e);
 						}
 
-					}
 
-					ItemStack tool = damagerEquipment.getItemInMainHand();
+						if (e.getCause() == EntityDamageEvent.DamageCause.ENTITY_ATTACK) {
 
-					// SUFFERING CURSE ENCHANTMENT
-					if (hasEnchant(tool, CustomEnchantment.SUFFERING_CURSE)) {
-						if (MysteriaUtils.chance(50)) damager.damage(1);
-					}
+							// SUFFERING CURSE ENCHANTMENT
+							if (hasEnchant(tool, CustomEnchantment.SUFFERING_CURSE)) {
+								if (MysteriaUtils.chance(50)) damager.damage(1);
+							}
 
-					// FROSTBURN ENCHANTMENT
-					if (hasEnchant(tool, CustomEnchantment.FROSTBURN)) {
-						int level = getEnchantLevel(tool, CustomEnchantment.FROSTBURN);
-						if (!victim.hasPotionEffect(CustomEffectType.FROSTBURN)) {
-							PotionEffect frostburn = new PotionEffect(CustomEffectType.FROSTBURN, 10 * 20, (level == 0 ? 0 : level - 1));
-							victim.addPotionEffect(frostburn);
+							// FROSTBITE ENCHANTMENT
+							if (hasEnchant(tool, CustomEnchantment.FROSTBITE)) {
+								int level = getEnchantLevel(tool, CustomEnchantment.FROSTBITE);
+								if (!victim.hasPotionEffect(CustomEffectType.FROSTBURN)) {
+									CustomSound.play(victim.getLocation(), CustomSound.ENCHANTMENT_FROSTBITE, 0.8f, 1);
+									PotionEffect frostburn = new PotionEffect(CustomEffectType.FROSTBURN, 10 * 20, (level == 0 ? 0 : level - 1));
+									victim.addPotionEffect(frostburn);
+								}
+							}
 						}
-					}
 
-					// CRITICAL HIT PART (if hit isn't piercing hit && if weapon isn't an axe or trident)
-					if (!isPiercingHit && !MaterialTags.AXES.isTagged(tool) && tool.getType() != Material.TRIDENT) {
+						if (e.getCause() != EntityDamageEvent.DamageCause.ENTITY_SWEEP_ATTACK) {
 
-						// Getting Critical Hit Chance
-						int crit_chance = getTotalPercent(damager, CustomEnchantment.CRITICAL_CHANCE);
-						if (damager instanceof Player) {
-							crit_chance += 5;
+							// CRITICAL HIT PART (if hit isn't piercing hit && if weapon isn't an axe or trident)
+							if (!isPiercingHit) {
+								boolean pass = e.getCause() == EntityDamageEvent.DamageCause.PROJECTILE;
+								if (!pass) {
+									pass = !MaterialTags.AXES.isTagged(tool) && tool.getType() != Material.TRIDENT;
+								}
+								if (pass && e.getCause() == EntityDamageEvent.DamageCause.PROJECTILE) {
+									pass = !(projectile instanceof Trident);
+								}
+								if (pass) {
+
+									// Getting Critical Hit Chance
+									int crit_chance = getTotalPercent(damager, CustomEnchantment.CRITICAL_CHANCE);
+									if (damager instanceof Player) {
+										crit_chance += 5;
+									}
+									isCriticalHit = MysteriaUtils.chance(crit_chance);
+
+									if (isCriticalHit) {
+										// Getting Critical Hit Damage
+										double crit_multiplier = getTotalPercent(damager, CustomEnchantment.CRITICAL_DAMAGE);
+										if (e.getCause() != EntityDamageEvent.DamageCause.PROJECTILE) {
+											crit_multiplier += 20.0;
+										}
+
+										// Make attack critical
+										makeCriticalHit(e, crit_multiplier);
+									}
+								}
+							}
+
 						}
-						isCriticalHit = MysteriaUtils.chance(crit_chance);
 
-						if (isCriticalHit) {
-							// Getting Critical Hit Damage
-							double crit_multiplier = 20.0 + getTotalPercent(damager, CustomEnchantment.CRITICAL_DAMAGE);
-
-							// Make attack critical
-							makeCriticalHit(e, crit_multiplier);
-						}
 					}
 
 				}
-
 			}
 
-		}
-		else if (e.getDamager() instanceof AbstractArrow) {
-			AbstractArrow projectile = (AbstractArrow) e.getDamager();
-			if (projectile.getShooter() instanceof LivingEntity && e.getEntity() instanceof LivingEntity) {
-				LivingEntity damager = (LivingEntity) projectile.getShooter();
-				LivingEntity victim = (LivingEntity) e.getEntity();
 
-				// Decrease arrow and trident damage 30% if Player vs. Player
-				if (damager instanceof Player && victim instanceof Player) {
-					e.setDamage(e.getDamage() * 0.7);
-				}
 
-				// PIERCING HIT PART
-				if (damager.getEquipment() != null && victim.getEquipment() != null) {
-
-					int piercing_chance = getTotalPercent(damager, CustomEnchantment.PIERCING_CHANCE);
-					isPiercingHit = MysteriaUtils.chance(piercing_chance);
-
-					if (!isPiercingHit) {
-						double defence;
-						if (projectile instanceof Trident) {
-							defence = getTotalPercent(victim, CustomEnchantment.TRIDENT_DEFENCE);
-						} else {
-							defence = getTotalPercent(victim, CustomEnchantment.ARROW_DEFENCE);
-						}
-						decreaseDamagePercent(e, defence);
-					} else {
-						makePiercingHit(e);
-					}
-
-				}
-
-			}
-
-		}
-
-		if (e.getEntity() instanceof LivingEntity) {
-			LivingEntity entity = (LivingEntity) e.getEntity();
-
+			// DAMAGE INDICATOR
 			double finalDMG = e.getFinalDamage();
 			DecimalFormat format = new DecimalFormat("0.0");
 			String formatted = format.format(finalDMG);
@@ -218,12 +221,12 @@ public class EnchListeners implements Listener {
 				line = formatted;
 			}
 
-			Location loc = entity.getEyeLocation().add(
+			Location loc = victim.getEyeLocation().add(
 					MysteriaUtils.getRandom(-1d, 1d),
 					0.3,
 					MysteriaUtils.getRandom(-1d, 1d));
 			if (!loc.getBlock().isPassable()) {
-				loc = entity.getEyeLocation().add(0, 0.3, 0);
+				loc = victim.getEyeLocation().add(0, 0.3, 0);
 			}
 
 			ArmorStand armorStand = spawnInvisibleArmorStand(loc);
@@ -231,6 +234,7 @@ public class EnchListeners implements Listener {
 			armorStand.setInvulnerable(true);
 			armorStand.setDisabledSlots(EquipmentSlot.values());
 			armorStand.setCustomNameVisible(true);
+			armorStand.setRemoveWhenFarAway(true);
 			armorStand.customName(Component.text(finalDMG != 0 ? line : "Absorbed", color));
 
 			new BukkitRunnable() {
@@ -244,6 +248,33 @@ public class EnchListeners implements Listener {
 
 		}
 
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+	private void executioner(EntityDeathEvent e) {
+		LivingEntity victim = e.getEntity();
+		Player killer = victim.getKiller();
+		if (killer != null) {
+			ItemStack tool = killer.getInventory().getItemInMainHand();
+			if (hasEnchant(tool, CustomEnchantment.EXECUTIONER)) {
+				int level = getEnchantLevel(tool, CustomEnchantment.EXECUTIONER);
+				long cooldown = COOLDOWN_EXECUTIONER.getOrDefault(victim.getUniqueId(), 0L);
+				if (MysteriaUtils.checkCooldown(cooldown)) {
+					PotionEffect effect = new PotionEffect(
+							PotionEffectType.REGENERATION, level * 20, (victim instanceof Player ? 2 : 0));
+					killer.addPotionEffect(effect);
+					long newCooldown = MysteriaUtils.createCooldown(30);
+					COOLDOWN_EXECUTIONER.put(victim.getUniqueId(), newCooldown);
+				}
+				if (victim instanceof Player) {
+					ItemStack skull = new ItemStack(Material.PLAYER_HEAD);
+					SkullMeta meta = (SkullMeta) skull.getItemMeta();
+					meta.setOwningPlayer((Player) victim);
+					skull.setItemMeta(meta);
+					victim.getWorld().dropItem(victim.getLocation(), skull);
+				}
+			}
+		}
 	}
 
 	@EventHandler(ignoreCancelled = true)
@@ -280,6 +311,8 @@ public class EnchListeners implements Listener {
 			p.getWorld().playSound(p.getLocation(), Sound.ITEM_TRIDENT_THUNDER, SoundCategory.MASTER, 3, 2);
 		}
 	}
+
+
 
 	@Nonnull
 	private ArmorStand spawnInvisibleArmorStand(@Nonnull Location loc) {
@@ -381,7 +414,7 @@ public class EnchListeners implements Listener {
 		return new Vector(xVel, yVel, zVel).normalize().multiply(actualPower);
 	}
 
-	public Location getArmTip(Location location, EulerAngle rightArmPose) {
+	private Location getArmTip(Location location, EulerAngle rightArmPose) {
 		// Gets shoulder location
 		Location asl = location.clone();
 		asl.setYaw(asl.getYaw() + 90f);
@@ -399,7 +432,7 @@ public class EnchListeners implements Listener {
 		return asl;
 	}
 
-	public Vector getDirection(Double yaw, Double pitch, Double roll) {
+	private Vector getDirection(Double yaw, Double pitch, Double roll) {
 		Vector v = new Vector(0, -1, 0);
 		v = rotateAroundAxisX(v, pitch);
 		v = rotateAroundAxisY(v, yaw);
@@ -435,6 +468,7 @@ public class EnchListeners implements Listener {
 		return v.setX(x).setY(y);
 	}
 
+	@SuppressWarnings("ConstantConditions")
 	private boolean[][] getWingShape() {
 		boolean x = true;
 		boolean o = false;
@@ -553,6 +587,13 @@ public class EnchListeners implements Listener {
 		World world = e.getEntity().getWorld();
 		Location loc = e.getEntity().getLocation();
 		world.playSound(loc, Sound.ENTITY_PLAYER_ATTACK_CRIT, 1, 1);
+		if (e.getDamager() instanceof AbstractArrow) {
+			AbstractArrow arrow = (AbstractArrow) e.getDamager();
+			if (arrow.getShooter() instanceof Player && arrow.getShooter() != null) {
+				Player damager = (Player) arrow.getShooter();
+				damager.playSound(damager.getLocation(), Sound.ENTITY_PLAYER_ATTACK_CRIT, 1, 1);
+			}
+		}
 		world.spawnParticle(Particle.CRIT, loc, 20, 0, 1, 0);
 	}
 

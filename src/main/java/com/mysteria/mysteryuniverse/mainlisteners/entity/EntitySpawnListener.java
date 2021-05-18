@@ -48,15 +48,7 @@ public class EntitySpawnListener implements Listener {
 				//e.getLocation().getNearbyPlayers(5).forEach(p -> p.sendMessage(Utils.coloredMessage("&8[&3MU&8] &4Withers cannot be spawned by this method.")));
 				break;
 			default:
-				EntityEquipment equipment = modifyEntity(e.getEntity(), e).getEquipment();
-				if (equipment != null) {
-					equipment.setHelmetDropChance(0);
-					equipment.setChestplateDropChance(0);
-					equipment.setLeggingsDropChance(0);
-					equipment.setBootsDropChance(0);
-					equipment.setItemInMainHandDropChance(0);
-					equipment.setItemInOffHandDropChance(0);
-				}
+				modifySpawn(e.getEntity(), e);
 				break;
 
 		}
@@ -65,25 +57,33 @@ public class EntitySpawnListener implements Listener {
 
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onChunkLoad(ChunkLoadEvent e) {
-		if (!e.isNewChunk()) return;
-
-		for (Entity x : e.getChunk().getEntities())
-			if (x instanceof LivingEntity) {
-				EntityEquipment equipment = modifyEntity((LivingEntity) x, e).getEquipment();
-				if (equipment != null) {
-					equipment.setHelmetDropChance(0);
-					equipment.setChestplateDropChance(0);
-					equipment.setLeggingsDropChance(0);
-					equipment.setBootsDropChance(0);
-					equipment.setItemInMainHandDropChance(0);
-					equipment.setItemInOffHandDropChance(0);
+		if (e.isNewChunk()) {
+			for (Entity x : e.getChunk().getEntities()) {
+				if (x instanceof LivingEntity) {
+					modifySpawn((LivingEntity) x, e);
 				}
 			}
+		}
 
 	}
 
 
 
+	private void modifySpawn(LivingEntity entity, Event e) {
+		EntityEquipment equipment = modifyEntity(entity, e).getEquipment();
+		if (equipment != null) {
+			equipment.setHelmetDropChance(0);
+			equipment.setChestplateDropChance(0);
+			equipment.setLeggingsDropChance(0);
+			equipment.setBootsDropChance(0);
+			if (equipment.getItemInMainHand().getType() != Material.TRIDENT) {
+				equipment.setItemInMainHandDropChance(0);
+			}
+			if (equipment.getItemInOffHand().getType() != Material.NAUTILUS_SHELL) {
+				equipment.setItemInOffHandDropChance(0);
+			}
+		}
+	}
 
 	@SuppressWarnings("ConstantConditions")
 	private LivingEntity modifyEntity(LivingEntity entity, Event e) {
@@ -261,8 +261,16 @@ public class EntitySpawnListener implements Listener {
 
 				this.setHealth(drowned, 32.0);
 				drowned.setShouldBurnInDay(false);
-
 				return drowned;
+
+			case VINDICATOR:
+			case PILLAGER:
+			case EVOKER:
+			case ILLUSIONER:
+
+				this.setHealth(entity, 36.0);
+				entity.setCanPickupItems(false);
+				return entity;
 
 			case ZOMBIFIED_PIGLIN:
 			case PIGLIN:
