@@ -54,8 +54,8 @@ public class CustomItemUseListener implements Listener {
 
 		if (customItem.getType() == CustomItemType.ACTIVE) {
 			CustomItemUseEvent event = new CustomItemUseEvent(p, customItem, item, CustomItemUseReason.PLAYER_RIGHT_CLICK);
-
 			Bukkit.getPluginManager().callEvent(event);
+
 			setCooldown(p);
 		}
 

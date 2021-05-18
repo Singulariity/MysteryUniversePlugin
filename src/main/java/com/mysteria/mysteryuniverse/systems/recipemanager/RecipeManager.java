@@ -820,6 +820,13 @@ public class RecipeManager {
 				.setIngredient('V', CustomItem.VOID_TENDRIL);
 		StarCraftingManager.addRecipe(recipeStarCrafting);
 
+		recipeStarCrafting = new StarCraftingRecipe(NamespacedKey.minecraft("trident"), new ItemStack(Material.TRIDENT))
+				.shape(" CC", "STC", "SS ")
+				.setIngredient('S', new ItemStack(Material.PRISMARINE_SHARD, 2))
+				.setIngredient('C', Material.PRISMARINE_CRYSTALS)
+				.setIngredient('T', CustomItem.BROKEN_TRIDENT);
+		StarCraftingManager.addRecipe(recipeStarCrafting);
+
 
 
 

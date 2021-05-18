@@ -1,17 +1,22 @@
-package com.mysteria.mysteryuniverse.systems;
+package com.mysteria.mysteryuniverse.mainlisteners;
 
+import com.destroystokyo.paper.event.server.PaperServerListPingEvent;
 import com.mysteria.customapi.sounds.CustomSound;
 import com.mysteria.mysteryuniverse.MysteryUniversePlugin;
 import com.mysteria.utils.MysteriaUtils;
 import com.mysteria.utils.NamedColor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.luckperms.api.LuckPerms;
+import net.luckperms.api.LuckPermsProvider;
+import net.luckperms.api.model.user.User;
 import org.bukkit.Bukkit;
 import org.bukkit.SoundCategory;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerResourcePackStatusEvent;
@@ -24,9 +29,50 @@ public class SpawnListeners implements Listener {
 
 	private final World spawn_world = Bukkit.getWorld("spawn");
 	private final HashMap<Player, BukkitTask> musicTimers = new HashMap<>();
+	private final long serverStartCooldown;
 
 	public SpawnListeners() {
 		Bukkit.getPluginManager().registerEvents(this, MysteryUniversePlugin.getInstance());
+		serverStartCooldown = MysteriaUtils.createCooldown(30);
+	}
+
+	@EventHandler
+	public void onPreLogin(AsyncPlayerPreLoginEvent e) {
+		if (e.getLoginResult() == AsyncPlayerPreLoginEvent.Result.ALLOWED) {
+			if (!MysteriaUtils.checkCooldown(serverStartCooldown)) {
+				LuckPerms luckPerms = LuckPermsProvider.get();
+				User user = luckPerms.getUserManager().getUser(e.getUniqueId());
+				if (user == null || !user.getPrimaryGroup().equalsIgnoreCase("admin")) {
+					e.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER,
+							Component.text()
+									.append(Component.text("Server just opened. Wait "))
+									.append(Component.text(MysteriaUtils.cooldownString(serverStartCooldown), NamedColor.TURBO))
+									.append(Component.text(" before join."))
+									.colorIfAbsent(NamedColor.SOARING_EAGLE)
+									.build());
+				}
+			}
+		}
+	}
+
+	@EventHandler(ignoreCancelled = true)
+	public void onServerPing(PaperServerListPingEvent e) {
+		e.motd(Component.text()
+				.append(Component.text("         "))
+				.append(Component.text("    ", NamedColor.CARMINE_PINK).decorate(TextDecoration.STRIKETHROUGH))
+				.append(Component.text("( ", NamedColor.TURBO).decorate(TextDecoration.STRIKETHROUGH))
+				.append(Component.text(" ✦ ", NamedColor.SILVER))
+				.append(Component.text("Mystery", NamedColor.PROTOSS_PYLON).decorate(TextDecoration.BOLD))
+				.append(Component.space())
+				.append(Component.text("Universe", NamedColor.BEEKEEPER)
+						.decorate(TextDecoration.BOLD)
+						.decorate(TextDecoration.ITALIC))
+				.append(Component.text(" ✦ ", NamedColor.SILVER))
+				.append(Component.text(" )", NamedColor.TURBO).decorate(TextDecoration.STRIKETHROUGH))
+				.append(Component.text("    ", NamedColor.CARMINE_PINK).decorate(TextDecoration.STRIKETHROUGH))
+				.append(Component.newline())
+				.append(Component.text("                                        ...", NamedColor.BEEKEEPER))
+				.build());
 	}
 
 

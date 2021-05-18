@@ -4,16 +4,15 @@ import com.mysteria.customapi.items.CustomItem;
 import com.mysteria.mysteryuniverse.MysteryUniversePlugin;
 import com.mysteria.utils.MysteriaUtils;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Sound;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Biome;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
 
@@ -43,6 +42,18 @@ public class EntityDeathDropsListener implements Listener {
 						}
 					}
 					break;
+				case DROWNED:
+					EntityEquipment equipment = e.getEntity().getEquipment();
+					if (equipment != null) {
+						if (equipment.getItemInMainHand().getType() == Material.TRIDENT) {
+							if (MysteriaUtils.chance(1)) {
+								e.getDrops().add(CustomItem.BROKEN_TRIDENT.getItemStack());
+							}
+						}
+					}
+
+					break;
+
 				case ZOMBIE:
 					if (MysteriaUtils.chance(2)) {
 						e.getDrops().add(CustomItem.BLOODSTONE.getItemStack());
@@ -92,13 +103,24 @@ public class EntityDeathDropsListener implements Listener {
 					}
 					break;
 
+				case PILLAGER:
+					EntityEquipment pillagerEquipment = e.getEntity().getEquipment();
+					if (pillagerEquipment != null) {
+						if (pillagerEquipment.getItemInMainHand().getType() == Material.CROSSBOW) {
+							if (MysteriaUtils.chance(4)) {
+								e.getDrops().add(new ItemStack(Material.CROSSBOW));
+							}
+						}
+					}
+					break;
+
 			}
 		}
 
 	}
 
 	public boolean checkBiome(@Nonnull Location loc, @Nonnull Biome biome) {
-		return loc.getWorld().getBiome(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()) == biome;
+		return loc.getBlock().getBiome() == biome;
 	}
 
 }

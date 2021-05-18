@@ -9,13 +9,13 @@ import com.mysteria.mysteryuniverse.commands.SpawnMeteoriteCommand;
 import com.mysteria.mysteryuniverse.commands.StartingGiftCommand;
 import com.mysteria.mysteryuniverse.database.Database;
 import com.mysteria.mysteryuniverse.database.listeners.PlayerCreateDataListener;
+import com.mysteria.mysteryuniverse.mainlisteners.SpawnListeners;
 import com.mysteria.mysteryuniverse.mainlisteners.custom.*;
 import com.mysteria.mysteryuniverse.mainlisteners.entity.*;
 import com.mysteria.mysteryuniverse.mainlisteners.player.*;
 import com.mysteria.mysteryuniverse.mainlisteners.server.ExplosionPrimeListener;
 import com.mysteria.mysteryuniverse.mainlisteners.server.FarmingListeners;
 import com.mysteria.mysteryuniverse.mainlisteners.server.FurnaceBurnListener;
-import com.mysteria.mysteryuniverse.systems.SpawnListeners;
 import com.mysteria.mysteryuniverse.systems.meteorite.MeteoriteManager;
 import com.mysteria.mysteryuniverse.systems.recipemanager.RecipeManager;
 import com.mysteria.mysteryuniverse.systems.starcrafting.StarCraftingManager;
@@ -64,6 +64,7 @@ public final class MysteryUniversePlugin extends JavaPlugin {
 		registerListeners();
 
 		registerCommands();
+
 	}
 
 	@SuppressWarnings("ResultOfMethodCallIgnored")

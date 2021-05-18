@@ -98,7 +98,7 @@ public class StarCraftingRecipe implements Recipe {
 	}
 
 
-	public boolean match(ItemStack[][] input) {
+	public boolean match(@Nonnull ItemStack[][] input) {
 		for (int i = 0; i < rows.length; i++) {
 			for (int j = 0; j < rows[i].length(); j++) {
 				ItemStack itemThere = ingredients.get(rows[i].charAt(j));

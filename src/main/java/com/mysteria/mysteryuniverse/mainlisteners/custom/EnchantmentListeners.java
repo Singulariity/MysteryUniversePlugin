@@ -40,7 +40,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-@SuppressWarnings("all")
+//@SuppressWarnings("all")
 public class EnchantmentListeners implements Listener {
 
 	public EnchantmentListeners() {
@@ -55,7 +55,6 @@ public class EnchantmentListeners implements Listener {
 			.add(Enchantment.PROTECTION_FIRE)
 			.add(Enchantment.PROTECTION_PROJECTILE)
 			.add(Enchantment.PROTECTION_FALL)
-			.add(Enchantment.FIRE_ASPECT)
 			.add(Enchantment.ARROW_FIRE)
 			.add(Enchantment.LOOT_BONUS_BLOCKS)
 			.add(Enchantment.LOOT_BONUS_MOBS)
@@ -261,7 +260,7 @@ public class EnchantmentListeners implements Listener {
 
 			if (CustomItem.checkCustomItem(second, CustomItem.BOOK_OF_ETERNITY)) {
 				if (second.getEnchantments().size() == 0) return;
-				if (input.getEnchantments().size() > 0) return;
+				//if (input.getEnchantments().size() > 0) return;
 
 				EnchantmentContainer enchContainerSecond = EnchantmentContainer.get(second);
 				ItemInfo resultInfo = ItemInfo.get(resultItem);
@@ -272,17 +271,16 @@ public class EnchantmentListeners implements Listener {
 				Map<Enchantment, Integer> toAdd = new HashMap<>();
 
 				int emptySlot = enchContainerResult.getLimit() - enchContainerResult.getEnchs().size();
+				boolean book_of_eternity = CustomItem.checkCustomItem(input, CustomItem.BOOK_OF_ETERNITY);
 				for (Map.Entry<Enchantment, Integer> entry : enchContainerSecond.getEnchs().entrySet()) {
-					if (emptySlot > 0) {
-						if (entry.getKey().canEnchantItem(input)) {
-							if (entry.getKey().isCursed() && isBlessed) {
-								continue;
-							}
-							emptySlot--;
-							toAdd.put(entry.getKey(), entry.getValue());
+					if (emptySlot <= 0) break;
+
+					if (book_of_eternity || entry.getKey().canEnchantItem(input)) {
+						if (isConflicts(input, entry.getKey()) || (entry.getKey().isCursed() && isBlessed)) {
+							continue;
 						}
-					} else {
-						break;
+						emptySlot--;
+						toAdd.put(entry.getKey(), entry.getValue());
 					}
 				}
 
@@ -490,6 +488,15 @@ public class EnchantmentListeners implements Listener {
 			itemStack.removeEnchantment(ench);
 		}
 		itemStack.addUnsafeEnchantments(enchantments);
+	}
+
+	private boolean isConflicts(@Nonnull ItemStack itemStack, @Nonnull Enchantment enchantment) {
+		for (Enchantment ench : itemStack.getEnchantments().keySet()) {
+			if (ench.conflictsWith(enchantment) || enchantment.conflictsWith(ench)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

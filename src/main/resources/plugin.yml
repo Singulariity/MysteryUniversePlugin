@@ -3,4 +3,4 @@ version: ${project.version}
 main: com.mysteria.mysteryuniverse.MysteryUniversePlugin
 api-version: 1.16
 authors: [ Singularity ]
-depend: [ MysteriaUtils, WorldEdit, WorldGuard, MysteriaParry, ProtocolLib, CustomAPI, MysteriaPlayerTitles ]
+depend: [ LuckPerms, MysteriaUtils, WorldEdit, WorldGuard, MysteriaParry, ProtocolLib, CustomAPI, MysteriaPlayerTitles ]
