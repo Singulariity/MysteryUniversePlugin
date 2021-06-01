@@ -1,5 +1,6 @@
 package com.mysteria.mysteryuniverse.systems.meteorite;
 
+import com.mysteria.compass.CompassPlugin;
 import com.mysteria.customapi.items.CustomItem;
 import com.mysteria.mysteryuniverse.MysteryUniversePlugin;
 import com.mysteria.mysteryuniverse.systems.meteorite.events.MeteoriteLandEvent;
@@ -200,13 +201,11 @@ public class Meteorite {
 	}
 
 	private void setCompass() {
-		// TODO
-		//EnhancedCompassPlugin.getCompassManager().setMeteoriteLocation(location);
+		CompassPlugin.getCompassManager().setMeteoriteLocation(location);
 	}
 
 	private void removeCompass() {
-		// TODO
-		//EnhancedCompassPlugin.getCompassManager().setMeteoriteLocation(null);
+		CompassPlugin.getCompassManager().setMeteoriteLocation(null);
 	}
 
 	public void cancelMeteorite() {
