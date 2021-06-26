@@ -10,6 +10,9 @@ import com.mysteria.mysteryuniverse.events.PlayerHarvestEvent;
 import com.mysteria.mysteryuniverse.systems.meteorite.events.MeteoriteLandEvent;
 import com.mysteria.mysteryuniverse.systems.startinggift.events.StartingGiftSelectEvent;
 import com.mysteria.parry.events.ParryEvent;
+import com.mysteria.utils.MysteriaUtils;
+import com.mysteria.utils.NamedColor;
+import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.advancement.Advancement;
 import org.bukkit.advancement.AdvancementProgress;
@@ -21,6 +24,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerAdvancementDoneEvent;
 import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
@@ -56,6 +60,13 @@ public class AdvancementsListener implements Listener {
 	}
 
 
+	@EventHandler
+	public void onAdvancementDone(PlayerAdvancementDoneEvent e) {
+		Component msg = e.message();
+		if (msg != null) {
+			e.message(MysteriaUtils.getChatPREFIX().append(msg.color(NamedColor.SILVER)));
+		}
+	}
 
 	@EventHandler
 	public void onCustomSmithing(CustomSmithingEvent e) {
@@ -65,21 +76,11 @@ public class AdvancementsListener implements Listener {
 		if (customItem == null) return;
 
 		switch (customItem) {
-			case FAIRY_DUST:
-				giveAdvancement(e.getPlayer(), "story", "hey_listen", "criter1");
-				break;
-			case STARMETAL_INGOT:
-				giveAdvancement(e.getPlayer(), "story", "maximum_power", "criter1");
-				break;
-			case SOULSTONE:
-				giveAdvancement(e.getPlayer(), "story", "pitiful_soul", "criter1");
-				break;
-			case BLESSING_SCROLL:
-				giveAdvancement(e.getPlayer(), "story", "gods_blessing", "criter1");
-				break;
-			case BOOK_OF_CONSCIOUSNESS:
-				giveAdvancement(e.getPlayer(), "story", "consciousness", "criter1");
-				break;
+			case FAIRY_DUST -> giveAdvancement(e.getPlayer(), "story", "hey_listen", "criter1");
+			case STARMETAL_INGOT -> giveAdvancement(e.getPlayer(), "story", "maximum_power", "criter1");
+			case SOULSTONE -> giveAdvancement(e.getPlayer(), "story", "pitiful_soul", "criter1");
+			case BLESSING_SCROLL -> giveAdvancement(e.getPlayer(), "story", "gods_blessing", "criter1");
+			case BOOK_OF_CONSCIOUSNESS -> giveAdvancement(e.getPlayer(), "story", "consciousness", "criter1");
 		}
 	}
 

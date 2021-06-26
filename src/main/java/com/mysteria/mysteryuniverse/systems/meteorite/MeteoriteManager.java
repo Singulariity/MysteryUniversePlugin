@@ -100,7 +100,7 @@ public class MeteoriteManager {
 
 	@Nullable
 	private World getConfigWorld() {
-		String worldStr = MysteryUniversePlugin.getInstance().getConfig().getString("Meteorite.world");
+		String worldStr = MysteryUniversePlugin.getInstance().getConfig().getString("meteorite.world");
 		World world;
 		if (worldStr == null) {
 			world = null;

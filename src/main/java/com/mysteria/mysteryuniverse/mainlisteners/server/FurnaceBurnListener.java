@@ -5,15 +5,15 @@ import com.mysteria.mysteryuniverse.MysteryUniversePlugin;
 import com.mysteria.utils.MysteriaUtils;
 import com.mysteria.utils.NamedColor;
 import net.kyori.adventure.text.Component;
-import net.minecraft.server.v1_16_R3.Item;
-import net.minecraft.server.v1_16_R3.TileEntityFurnace;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.entity.TileEntityFurnace;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.Furnace;
 import org.bukkit.block.data.Directional;
-import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_17_R1.inventory.CraftItemStack;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -109,17 +109,11 @@ public class FurnaceBurnListener implements Listener {
 				fuelTime = TileEntityFurnace.f().getOrDefault(item, 0);
 			}
 		} else {
-			switch (customItem) {
-				case RADIOACTIVE_COAL:
-					fuelTime = getFuelTime(new ItemStack(Material.COAL), furnaceType) * 4;
-					break;
-				case FLINT_AND_COAL:
-					fuelTime = getFuelTime(new ItemStack(Material.COAL), furnaceType) * 2;
-					break;
-				default:
-					fuelTime = getFuelTime(new ItemStack(Material.COAL), furnaceType);
-					break;
-			}
+			fuelTime = switch (customItem) {
+				case RADIOACTIVE_COAL -> getFuelTime(new ItemStack(Material.COAL), furnaceType) * 4;
+				case FLINT_AND_COAL -> getFuelTime(new ItemStack(Material.COAL), furnaceType) * 2;
+				default -> getFuelTime(new ItemStack(Material.COAL), furnaceType);
+			};
 		}
 		return furnaceType == Material.FURNACE ? fuelTime : (fuelTime / 2);
 	}
