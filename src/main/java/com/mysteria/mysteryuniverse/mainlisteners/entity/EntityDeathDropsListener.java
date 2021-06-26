@@ -120,7 +120,7 @@ public class EntityDeathDropsListener implements Listener {
 	}
 
 	public boolean checkBiome(@Nonnull Location loc, @Nonnull Biome biome) {
-		return loc.getBlock().getBiome() == biome;
+		return loc.getWorld().getBiome(loc.getBlockX(), loc.getBlockZ(), loc.getBlockZ()).equals(biome);
 	}
 
 }

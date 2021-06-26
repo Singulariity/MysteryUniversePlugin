@@ -141,9 +141,7 @@ public class Meteorite {
 					meteoriteEntity.remove();
 					this.cancel();
 
-					sendMeteoriteMessage(Component.text("The meteorite has been landed.", NamedColor.CARMINE_PINK), false);
 					if (!hidden) {
-						sendMeteoriteMessage(Component.text("Special compass option is not available anymore.", NamedColor.CARMINE_PINK), false);
 						removeCompass();
 					}
 
@@ -152,6 +150,11 @@ public class Meteorite {
 
 					if (meteoriteLandEvent.isCancelled()) {
 						return;
+					}
+
+					sendMeteoriteMessage(Component.text("The meteorite has been landed.", NamedColor.CARMINE_PINK), false);
+					if (!hidden) {
+						sendMeteoriteMessage(Component.text("Special compass option is not available anymore.", NamedColor.CARMINE_PINK), false);
 					}
 
 					world.strikeLightningEffect(l);

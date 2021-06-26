@@ -10,11 +10,11 @@ import com.mysteria.utils.MysteriaUtils;
 import com.mysteria.utils.NamedColor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
-import net.minecraft.server.v1_16_R3.EntityArmorStand;
-import net.minecraft.server.v1_16_R3.EntityTypes;
+import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.decoration.EntityArmorStand;
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_17_R1.CraftWorld;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -316,8 +316,8 @@ public class EnchListeners implements Listener {
 
 	@Nonnull
 	private ArmorStand spawnInvisibleArmorStand(@Nonnull Location loc) {
-		net.minecraft.server.v1_16_R3.World w = ((CraftWorld) loc.getWorld()).getHandle();
-		EntityArmorStand nmsEntity = new EntityArmorStand(EntityTypes.ARMOR_STAND, w);
+		net.minecraft.server.level.WorldServer w = ((CraftWorld) loc.getWorld()).getHandle();
+		EntityArmorStand nmsEntity = new EntityArmorStand(EntityTypes.c, w);
 		nmsEntity.setLocation(loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
 		nmsEntity.setInvisible(true);
 		nmsEntity.setSmall(true);

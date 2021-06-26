@@ -1,12 +1,10 @@
 package com.mysteria.mysteryuniverse.mainlisteners.custom;
 
-import com.google.common.collect.ImmutableList;
 import com.mysteria.customapi.effects.CustomEffect;
 import com.mysteria.customapi.effects.CustomEffectType;
 import com.mysteria.mysteryuniverse.MysteryUniversePlugin;
 import com.mysteria.utils.MysteriaUtils;
-import net.minecraft.server.v1_16_R3.MobEffectInfo;
-import net.minecraft.server.v1_16_R3.MobEffectList;
+import net.minecraft.world.effect.MobEffectInfo;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -32,7 +30,7 @@ public class WitchPotionSplashListener implements Listener {
 		WITCH_EFFECTS = new ArrayList<>(Arrays.asList(PotionEffectType.values()));
 		WITCH_EFFECTS.removeIf(type -> type == CustomEffectType.BROKEN_LEG);
 		WITCH_EFFECTS.removeIf(type -> !(type instanceof CustomEffect) ||
-				((CustomEffect) type).getInfo() == MobEffectInfo.BENEFICIAL);
+				((CustomEffect) type).getInfo() == MobEffectInfo.a);
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

@@ -194,20 +194,56 @@ public class RecipeManager {
 		List<String> removelist = new ArrayList<>();
 
 		// Furnace
-		removelist.add("iron_ingot");
+		removelist.add("copper_ingot_from_blasting_copper_ore");
+		removelist.add("copper_ingot_from_blasting_deepslate_copper_ore");
+		removelist.add("copper_ingot_from_blasting_raw_copper");
+		removelist.add("copper_ingot_from_smelting_copper_ore");
+		removelist.add("copper_ingot_from_smelting_deepslate_copper_ore");
+		removelist.add("copper_ingot_from_smelting_raw_copper");
+
+		removelist.add("gold_ingot_from_smelting_raw_gold");
+		removelist.add("gold_ingot_from_blasting_raw_gold");
+		removelist.add("gold_ingot_from_blasting_gold_ore");
+		removelist.add("gold_ingot_from_smelting_gold_ore");
+		removelist.add("gold_ingot_from_smelting_nether_gold_ore");
+		removelist.add("gold_ingot_from_blasting_nether_gold_ore");
+		removelist.add("gold_ingot_from_smelting_deepslate_gold_ore");
+		removelist.add("gold_ingot_from_blasting_deepslate_gold_ore");
 		removelist.add("gold_nugget_from_smelting");
-		removelist.add("gold_ingot");
-		removelist.add("diamond_from_smelting");
-		removelist.add("lapis_from_smelting");
-		removelist.add("redstone_from_smelting");
-		removelist.add("green_dye");
-		// Blast Furnace
-		removelist.add("iron_ingot_from_blasting");
 		removelist.add("gold_nugget_from_blasting");
-		removelist.add("gold_ingot_from_blasting");
-		removelist.add("diamond_from_blasting");
-		removelist.add("lapis_from_blasting");
-		removelist.add("redstone_from_blasting");
+
+		removelist.add("iron_ingot_from_smelting_raw_iron");
+		removelist.add("iron_ingot_from_blasting_raw_iron");
+		removelist.add("iron_ingot_from_smelting_iron_ore");
+		removelist.add("iron_ingot_from_smelting_deepslate_iron_ore");
+		removelist.add("iron_ingot_from_blasting_iron_ore");
+		removelist.add("iron_ingot_from_blasting_deepslate_iron_ore");
+
+		removelist.add("lapis_lazuli_from_smelting_lapis_ore");
+		removelist.add("lapis_lazuli_from_smelting_deepslate_lapis_ore");
+		removelist.add("lapis_lazuli_from_blasting_lapis_ore");
+		removelist.add("lapis_lazuli_from_blasting_deepslate_lapis_ore");
+
+		removelist.add("redstone_from_smelting_redstone_ore");
+		removelist.add("redstone_from_smelting_deepslate_redstone_ore");
+		removelist.add("redstone_from_blasting_redstone_ore");
+		removelist.add("redstone_from_blasting_deepslate_redstone_ore");
+
+		removelist.add("emerald_from_smelting_emerald_ore");
+		removelist.add("emerald_from_smelting_deepslate_emerald_ore");
+		removelist.add("emerald_from_blasting_emerald_ore");
+		removelist.add("emerald_from_blasting_deepslate_emerald_ore");
+
+		removelist.add("diamond_from_smelting_diamond_ore");
+		removelist.add("diamond_from_smelting_deepslate_diamond_ore");
+		removelist.add("diamond_from_blasting_diamond_ore");
+		removelist.add("diamond_from_blasting_deepslate_diamond_ore");
+
+		removelist.add("netherite_scrap");
+		removelist.add("netherite_scrap_from_blasting");
+		removelist.add("netherite_ingot");
+
+		removelist.add("green_dye");
 		// Crafting Table
 		removelist.add("repair_item");
 		removelist.add("end_crystal");
@@ -241,12 +277,6 @@ public class RecipeManager {
 		removelist.add("emerald");
 		removelist.add("netherite_ingot_from_netherite_block");
 		removelist.add("lapis_lazuli");
-		// Ores
-		removelist.add("emerald_from_smelting");
-		removelist.add("emerald_from_blasting");
-		removelist.add("netherite_scrap");
-		removelist.add("netherite_scrap_from_blasting");
-		removelist.add("netherite_ingot");
 		// Other
 		removelist.add("blast_furnace");
 		removelist.add("furnace");
@@ -291,19 +321,111 @@ public class RecipeManager {
 
 		ItemStack gold_nuggets = new ItemStack(Material.GOLD_NUGGET,3);
 		ItemStack iron_nuggets = new ItemStack(Material.IRON_NUGGET,3);
+		ItemStack copper_ingot = new ItemStack(Material.COPPER_INGOT);
+
+
+		Bukkit.addRecipe(setGroup(
+				new FurnaceRecipe(NamespacedKey.minecraft("gold_ingot_from_smelting_raw_gold"),
+						gold_nuggets, Material.RAW_GOLD, 0.2F, 1200), "gold_nuggets_smelting"));
+		Bukkit.addRecipe(setGroup(
+				new FurnaceRecipe(NamespacedKey.minecraft("gold_ingot_from_smelting_deepslate_gold_ore"),
+						gold_nuggets, Material.DEEPSLATE_GOLD_ORE, 0.2F, 1200), "gold_nuggets_smelting"));
+		Bukkit.addRecipe(setGroup(
+				new FurnaceRecipe(NamespacedKey.minecraft("gold_ingot_from_smelting_gold_ore"),
+						gold_nuggets, Material.GOLD_ORE, 0.2F, 1200), "gold_nuggets_smelting"));
+		Bukkit.addRecipe(setGroup(
+				new FurnaceRecipe(NamespacedKey.minecraft("gold_ingot_from_smelting_nether_gold_ore"),
+						new ItemStack(Material.GOLD_NUGGET), Material.NETHER_GOLD_ORE, 0.1F, 1200), "gold_nuggets_smelting"));
+		Bukkit.addRecipe(setGroup(
+				new BlastingRecipe(NamespacedKey.minecraft("gold_ingot_from_blasting_raw_gold"),
+						gold_nuggets, Material.RAW_GOLD, 0.3F, 600), "gold_nuggets_blasting"));
+		Bukkit.addRecipe(setGroup(
+				new BlastingRecipe(NamespacedKey.minecraft("gold_ingot_from_blasting_deepslate_gold_ore"),
+						gold_nuggets, Material.DEEPSLATE_GOLD_ORE, 0.3F, 600), "gold_nuggets_blasting"));
+		Bukkit.addRecipe(setGroup(
+				new BlastingRecipe(NamespacedKey.minecraft("gold_ingot_from_blasting_gold_ore"),
+						gold_nuggets, Material.GOLD_ORE, 0.3F, 600), "gold_nuggets_blasting"));
+		Bukkit.addRecipe(setGroup(
+				new BlastingRecipe(NamespacedKey.minecraft("gold_ingot_from_blasting_nether_gold_ore"),
+						new ItemStack(Material.GOLD_NUGGET), Material.NETHER_GOLD_ORE, 0.1F, 500), "gold_nuggets_blasting"));
+
+
+		Bukkit.addRecipe(setGroup(
+				new FurnaceRecipe(NamespacedKey.minecraft("copper_ingot_from_smelting_raw_copper"),
+						copper_ingot, Material.RAW_COPPER, 0.2F, 400), "copper_ingot"));
+		Bukkit.addRecipe(setGroup(
+				new FurnaceRecipe(NamespacedKey.minecraft("copper_ingot_from_smelting_copper_ore"),
+						copper_ingot, Material.COPPER_ORE, 0.2F, 400), "copper_ingot"));
+		Bukkit.addRecipe(setGroup(
+				new FurnaceRecipe(NamespacedKey.minecraft("copper_ingot_from_smelting_deepslate_copper_ore"),
+						copper_ingot, Material.DEEPSLATE_COPPER_ORE, 0.2F, 400), "copper_ingot"));
+		Bukkit.addRecipe(setGroup(
+				new BlastingRecipe(NamespacedKey.minecraft("copper_ingot_from_blasting_raw_copper"),
+						copper_ingot, Material.RAW_COPPER, 0.3F, 200), "copper_ingot"));
+		Bukkit.addRecipe(setGroup(
+				new BlastingRecipe(NamespacedKey.minecraft("copper_ingot_from_blasting_copper_ore"),
+						copper_ingot, Material.COPPER_ORE, 0.3F, 200), "copper_ingot"));
+		Bukkit.addRecipe(setGroup(
+				new BlastingRecipe(NamespacedKey.minecraft("copper_ingot_from_blasting_deepslate_copper_ore"),
+						copper_ingot, Material.DEEPSLATE_COPPER_ORE, 0.3F, 200), "copper_ingot"));
+
+
+		Bukkit.addRecipe(setGroup(
+				new FurnaceRecipe(NamespacedKey.minecraft("iron_ingot_from_smelting_raw_iron"),
+						iron_nuggets, Material.RAW_IRON, 0.2F, 600), "iron_nuggets_smelting"));
+		Bukkit.addRecipe(setGroup(
+				new FurnaceRecipe(NamespacedKey.minecraft("iron_ingot_from_smelting_iron_ore"),
+						iron_nuggets, Material.IRON_ORE, 0.2F, 600), "iron_nuggets_smelting"));
+		Bukkit.addRecipe(setGroup(
+				new FurnaceRecipe(NamespacedKey.minecraft("iron_ingot_from_smelting_deepslate_iron_ore"),
+						iron_nuggets, Material.DEEPSLATE_IRON_ORE, 0.2F, 600), "iron_nuggets_smelting"));
+		Bukkit.addRecipe(setGroup(
+				new BlastingRecipe(NamespacedKey.minecraft("iron_ingot_from_blasting_raw_iron"),
+						iron_nuggets, Material.RAW_IRON, 0.3F, 300), "iron_nuggets_blasting"));
+		Bukkit.addRecipe(setGroup(
+				new BlastingRecipe(NamespacedKey.minecraft("iron_ingot_from_blasting_iron_ore"),
+						iron_nuggets, Material.IRON_ORE, 0.3F, 300), "iron_nuggets_blasting"));
+		Bukkit.addRecipe(setGroup(
+				new BlastingRecipe(NamespacedKey.minecraft("iron_ingot_from_blasting_deepslate_iron_ore"),
+						iron_nuggets, Material.DEEPSLATE_IRON_ORE, 0.3F, 300), "iron_nuggets_blasting"));
+
+
+		Bukkit.addRecipe(setGroup(
+				new BlastingRecipe(NamespacedKey.minecraft("lapis_lazuli_from_blasting_lapis_ore"),
+						new ItemStack(Material.LAPIS_LAZULI), Material.LAPIS_ORE, 0.2F, 400), "lapis_lazuli_blasting"));
+		Bukkit.addRecipe(setGroup(
+				new BlastingRecipe(NamespacedKey.minecraft("lapis_lazuli_from_blasting_deepslate_lapis_ore"),
+						new ItemStack(Material.LAPIS_LAZULI), Material.DEEPSLATE_LAPIS_ORE, 0.2F, 400), "lapis_lazuli_blasting"));
+
+
+		Bukkit.addRecipe(setGroup(
+				new BlastingRecipe(NamespacedKey.minecraft("redstone_from_blasting_redstone_ore"),
+						new ItemStack(Material.REDSTONE), Material.REDSTONE_ORE, 0.2F, 400), "redstone_blasting"));
+		Bukkit.addRecipe(setGroup(
+				new BlastingRecipe(NamespacedKey.minecraft("redstone_from_blasting_deepslate_redstone_ore"),
+						new ItemStack(Material.REDSTONE), Material.DEEPSLATE_REDSTONE_ORE, 0.2F, 400), "redstone_blasting"));
+
 
 		Bukkit.addRecipe(new FurnaceRecipe(NamespacedKey.minecraft("green_dye"), new ItemStack(Material.GREEN_DYE), Material.CACTUS, 0, 200));
-		Bukkit.addRecipe(new FurnaceRecipe(NamespacedKey.minecraft("gold_ingot"), gold_nuggets, Material.GOLD_ORE, (float) 0.2, 1200));
-		Bukkit.addRecipe(new FurnaceRecipe(NamespacedKey.minecraft("iron_ingot"), iron_nuggets, Material.IRON_ORE, (float) 0.2, 600));
 
-		Bukkit.addRecipe(new BlastingRecipe(NamespacedKey.minecraft("gold_ingot_from_blasting"), gold_nuggets, Material.GOLD_ORE, (float) 0.3, 600));
-		Bukkit.addRecipe(new BlastingRecipe(NamespacedKey.minecraft("nether_gold_ore_blasting"), new ItemStack(Material.GOLD_NUGGET), Material.NETHER_GOLD_ORE, (float) 0.1, 500));
-		Bukkit.addRecipe(new BlastingRecipe(NamespacedKey.minecraft("iron_ingot_from_blasting"), iron_nuggets, Material.IRON_ORE, (float) 0.3, 300));
-		Bukkit.addRecipe(new BlastingRecipe(NamespacedKey.minecraft("lapis_from_blasting"), new ItemStack(Material.LAPIS_LAZULI), Material.LAPIS_ORE, (float) 0.2, 400));
-		Bukkit.addRecipe(new BlastingRecipe(NamespacedKey.minecraft("redstone_from_blasting"), new ItemStack(Material.REDSTONE), Material.REDSTONE_ORE, (float) 0.2, 400));
-		Bukkit.addRecipe(new BlastingRecipe(NamespacedKey.minecraft("emerald_from_blasting"), CustomItem.STARDUST.getItemStack(), Material.EMERALD_ORE, 5, 800));
+
+		Bukkit.addRecipe(setGroup(
+				new BlastingRecipe(NamespacedKey.minecraft("emerald_from_blasting_emerald_ore"),
+						CustomItem.STARDUST.getItemStack(), Material.EMERALD_ORE, 5, 800), "stardust_blasting"));
+		Bukkit.addRecipe(setGroup(
+				new BlastingRecipe(NamespacedKey.minecraft("emerald_from_blasting_deepslate_emerald_ore"),
+						CustomItem.STARDUST.getItemStack(), Material.DEEPSLATE_EMERALD_ORE, 5, 800), "stardust_blasting"));
+
+
+		Bukkit.addRecipe(setGroup(
+				new BlastingRecipe(NamespacedKey.minecraft("diamond_from_blasting_diamond_ore"),
+						CustomItem.DIAMOND_SHARD.getItemStack(3), Material.DIAMOND_ORE, 1.0F, 1600), "diamond_shards_blasting"));
+		Bukkit.addRecipe(setGroup(
+				new BlastingRecipe(NamespacedKey.minecraft("diamond_from_blasting_deepslate_diamond_ore"),
+						CustomItem.DIAMOND_SHARD.getItemStack(3), Material.DEEPSLATE_DIAMOND_ORE, 1.0F, 1600), "diamond_shards_blasting"));
+
+
 		Bukkit.addRecipe(new BlastingRecipe(NamespacedKey.minecraft("netherite_scrap_from_blasting"), new ItemStack(Material.NETHERITE_SCRAP), Material.ANCIENT_DEBRIS, 3, 2400));
-		Bukkit.addRecipe(new BlastingRecipe(NamespacedKey.minecraft("diamond_from_blasting"), CustomItem.DIAMOND_SHARD.getItemStack(3), Material.DIAMOND_ORE, (float) 1.0, 1600));
 		Bukkit.addRecipe(new BlastingRecipe(NamespacedKey.minecraft("void_substance_from_blasting"), CustomItem.VOID_SUBSTANCE.getItemStack(), Material.EMERALD_BLOCK, 3, 2400));
 
 
@@ -679,6 +801,36 @@ public class RecipeManager {
 				.setIngredient('S', Material.STRING);
 		Bukkit.addRecipe(recipeShaped);
 
+		recipeShaped = new ShapedRecipe(NamespacedKey.minecraft("copper_sword"), CustomItem.COPPER_SWORD.getItemStack())
+				.shape("C", "C", "S")
+				.setIngredient('C', Material.COPPER_INGOT)
+				.setIngredient('S', Material.STICK);
+		Bukkit.addRecipe(recipeShaped);
+
+		recipeShaped = new ShapedRecipe(NamespacedKey.minecraft("copper_pickaxe"), CustomItem.COPPER_PICKAXE.getItemStack())
+				.shape("CCC", " S ", " S ")
+				.setIngredient('C', Material.COPPER_INGOT)
+				.setIngredient('S', Material.STICK);
+		Bukkit.addRecipe(recipeShaped);
+
+		recipeShaped = new ShapedRecipe(NamespacedKey.minecraft("copper_axe"), CustomItem.COPPER_AXE.getItemStack())
+				.shape("CC", "CS", " S")
+				.setIngredient('C', Material.COPPER_INGOT)
+				.setIngredient('S', Material.STICK);
+		Bukkit.addRecipe(recipeShaped);
+
+		recipeShaped = new ShapedRecipe(NamespacedKey.minecraft("copper_shovel"), CustomItem.COPPER_SHOVEL.getItemStack())
+				.shape("C", "S", "S")
+				.setIngredient('C', Material.COPPER_INGOT)
+				.setIngredient('S', Material.STICK);
+		Bukkit.addRecipe(recipeShaped);
+
+		recipeShaped = new ShapedRecipe(NamespacedKey.minecraft("copper_hoe"), CustomItem.COPPER_HOE.getItemStack())
+				.shape("CC", " S", " S")
+				.setIngredient('C', Material.COPPER_INGOT)
+				.setIngredient('S', Material.STICK);
+		Bukkit.addRecipe(recipeShaped);
+
 
 
 
@@ -820,16 +972,34 @@ public class RecipeManager {
 				.setIngredient('V', CustomItem.VOID_TENDRIL);
 		StarCraftingManager.addRecipe(recipeStarCrafting);
 
-		recipeStarCrafting = new StarCraftingRecipe(NamespacedKey.minecraft("trident"), new ItemStack(Material.TRIDENT))
-				.shape(" CC", "STC", "SS ")
-				.setIngredient('S', new ItemStack(Material.PRISMARINE_SHARD, 2))
-				.setIngredient('C', Material.PRISMARINE_CRYSTALS)
-				.setIngredient('T', CustomItem.BROKEN_TRIDENT);
+		recipeStarCrafting = new StarCraftingRecipe(NamespacedKey.minecraft("nature_crystal"), CustomItem.NATURE_CRYSTAL.getItemStack())
+				.shape(" EE", "EEE", "EE ")
+				.setIngredient('E', Material.EMERALD);
+		StarCraftingManager.addRecipe(recipeStarCrafting);
+
+		recipeStarCrafting = new StarCraftingRecipe(NamespacedKey.minecraft("bronze_ingot"), CustomItem.BRONZE_INGOT.getItemStack())
+				.shape(" C ", " I ", "   ")
+				.setIngredient('C', Material.COPPER_INGOT)
+				.setIngredient('I', Material.IRON_INGOT);
 		StarCraftingManager.addRecipe(recipeStarCrafting);
 
 
 
 
+	}
+
+	private Recipe setGroup(@Nonnull Recipe recipe, @Nonnull String group) {
+		if (recipe instanceof FurnaceRecipe) {
+			FurnaceRecipe rrecipe = (FurnaceRecipe) recipe;
+			rrecipe.setGroup(group);
+			return rrecipe;
+		}
+		else if (recipe instanceof BlastingRecipe) {
+			BlastingRecipe rrecipe = (BlastingRecipe) recipe;
+			rrecipe.setGroup(group);
+			return rrecipe;
+		}
+		return recipe;
 	}
 
 }

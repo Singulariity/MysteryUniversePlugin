@@ -19,21 +19,21 @@ public class SpawnMeteoriteCommand extends BaseCommand {
 			int timer;
 			boolean hidden;
 			try {
-				timer = Integer.parseInt(args[1]);
+				timer = Integer.parseInt(args[0]);
 			} catch (NumberFormatException ignored) {
 				return;
 			}
-			if (args[2].equalsIgnoreCase("false")) {
+			if (args[1].equalsIgnoreCase("false")) {
 				hidden = false;
-			} else if (args[2].equalsIgnoreCase("true")) {
+			} else if (args[1].equalsIgnoreCase("true")) {
 				hidden = true;
 			} else {
 				return;
 			}
 
-			if (args[0].equalsIgnoreCase("random")) {
+			if (args[2].equalsIgnoreCase("random")) {
 				MysteryUniversePlugin.getMeteoriteManager().spawnNaturalMeteorite(timer, hidden);
-			} else if (args[0].equalsIgnoreCase("here")) {
+			} else if (args[2].equalsIgnoreCase("here")) {
 				new Meteorite(p.getLocation(), timer, hidden);
 			}
 		}

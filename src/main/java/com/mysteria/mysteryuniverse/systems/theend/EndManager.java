@@ -7,14 +7,14 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextDecoration;
-import net.minecraft.server.v1_16_R3.BlockPosition;
-import net.minecraft.server.v1_16_R3.EnderDragonBattle;
+import net.minecraft.core.BlockPosition;
+import net.minecraft.world.level.dimension.end.EnderDragonBattle;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
 import org.bukkit.boss.DragonBattle;
-import org.bukkit.craftbukkit.v1_16_R3.boss.CraftDragonBattle;
+import org.bukkit.craftbukkit.v1_17_R1.boss.CraftDragonBattle;
 import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.Enderman;
 import org.bukkit.entity.EntityType;
@@ -55,7 +55,7 @@ public class EndManager {
 			Field handle = ((CraftDragonBattle) dragonBattle).getClass().getDeclaredField("handle");
 			handle.setAccessible(true);
 			EnderDragonBattle enderDragonBattle = (EnderDragonBattle) handle.get(dragonBattle);
-			enderDragonBattle.exitPortalLocation = new BlockPosition(0, -10, 0);
+			enderDragonBattle.w = new BlockPosition(0, -10, 0);
 		} catch (Exception ignored) {
 			MysteryUniversePlugin.getInstance().getLogger().warning("ENDER DRAGON PORTAL COULDN'T SET!");
 		}

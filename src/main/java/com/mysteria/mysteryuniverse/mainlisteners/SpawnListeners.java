@@ -33,7 +33,7 @@ public class SpawnListeners implements Listener {
 
 	public SpawnListeners() {
 		Bukkit.getPluginManager().registerEvents(this, MysteryUniversePlugin.getInstance());
-		serverStartCooldown = MysteriaUtils.createCooldown(30);
+		serverStartCooldown = MysteriaUtils.createCooldown(60);
 	}
 
 	@EventHandler
@@ -71,7 +71,7 @@ public class SpawnListeners implements Listener {
 				.append(Component.text(" )", NamedColor.TURBO).decorate(TextDecoration.STRIKETHROUGH))
 				.append(Component.text("    ", NamedColor.CARMINE_PINK).decorate(TextDecoration.STRIKETHROUGH))
 				.append(Component.newline())
-				.append(Component.text("                                        ...", NamedColor.BEEKEEPER))
+				.append(Component.text(" ", NamedColor.BEEKEEPER))
 				.build());
 	}
 
@@ -91,19 +91,19 @@ public class SpawnListeners implements Listener {
 	public void onResourcePack(PlayerResourcePackStatusEvent e) {
 		Player p = e.getPlayer();
 		switch (e.getStatus()) {
-			case ACCEPTED:
-				Component outLine = MysteriaUtils.centeredComponent(
-						Component.text("---------------------------------------------", NamedColor.BEEKEEPER)
-								.decorate(TextDecoration.STRIKETHROUGH).decorate(TextDecoration.BOLD));
-				p.sendMessage(outLine);
-				p.sendMessage(Component.space());
-				p.sendMessage(MysteriaUtils.centeredComponent(
-						Component.text("Thanks for accepting server resource pack!", NamedColor.DOWNLOAD_PROGRESS)));
-				p.sendMessage(MysteriaUtils.centeredComponent(
-						Component.text("Download has been started in background...", NamedColor.BEEKEEPER)));
-				p.sendMessage(Component.space());
-				p.sendMessage(outLine);
-				break;
+//			case ACCEPTED:
+//				Component outLine = MysteriaUtils.centeredComponent(
+//						Component.text("---------------------------------------------", NamedColor.BEEKEEPER)
+//								.decorate(TextDecoration.STRIKETHROUGH).decorate(TextDecoration.BOLD));
+//				p.sendMessage(outLine);
+//				p.sendMessage(Component.space());
+//				p.sendMessage(MysteriaUtils.centeredComponent(
+//						Component.text("Thanks for accepting server resource pack!", NamedColor.DOWNLOAD_PROGRESS)));
+//				p.sendMessage(MysteriaUtils.centeredComponent(
+//						Component.text("Downloading has been started in background...", NamedColor.BEEKEEPER)));
+//				p.sendMessage(Component.space());
+//				p.sendMessage(outLine);
+//				break;
 			case SUCCESSFULLY_LOADED:
 				if (p.getWorld() == spawn_world) {
 					playMusic(p);

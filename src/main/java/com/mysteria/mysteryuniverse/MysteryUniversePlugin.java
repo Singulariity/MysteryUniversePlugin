@@ -10,6 +10,9 @@ import com.mysteria.mysteryuniverse.commands.StartingGiftCommand;
 import com.mysteria.mysteryuniverse.database.Database;
 import com.mysteria.mysteryuniverse.database.listeners.PlayerCreateDataListener;
 import com.mysteria.mysteryuniverse.mainlisteners.SpawnListeners;
+import com.mysteria.mysteryuniverse.mainlisteners.block.BlockDropItem;
+import com.mysteria.mysteryuniverse.mainlisteners.block.LeavesDecay;
+import com.mysteria.mysteryuniverse.mainlisteners.block.OreListeners;
 import com.mysteria.mysteryuniverse.mainlisteners.custom.*;
 import com.mysteria.mysteryuniverse.mainlisteners.entity.*;
 import com.mysteria.mysteryuniverse.mainlisteners.player.*;
@@ -115,15 +118,21 @@ public final class MysteryUniversePlugin extends JavaPlugin {
 		// Database
 		new PlayerCreateDataListener();
 		// Block
+		new BlockDropItem();
+		new LeavesDecay();
+		new OreListeners();
+		// Custom
 		new AcquireTitleListeners();
 		new AdvancementsListener();
 		new CustomArrowListener();
 		new CustomItemUseListener();
 		new EnchantmentListeners();
 		new EnchListeners();
+		new MeteoriteLandListener();
 		new PlayerDeathKeepListener();
 		new WitchPotionSplashListener();
 		// Entity
+		new BoatListeners();
 		new CreeperTargetPlayerListener();
 		new DisableEntityPortalListener();
 		new EntityBreedListener();
@@ -133,7 +142,7 @@ public final class MysteryUniversePlugin extends JavaPlugin {
 		new SpawnerSpawnListener();
 		// Player
 		new PlayerBedEnterListener();
-		new PlayerFallDamageListener();
+		new PlayerSpecificDamageListener();
 		new PlayerFishingListener();
 		new PlayerInteractEntityListener();
 		new PlayerItemConsumeListener();
