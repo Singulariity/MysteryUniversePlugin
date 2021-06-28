@@ -218,6 +218,8 @@ public class RecipeManager {
 		removelist.add("iron_ingot_from_smelting_deepslate_iron_ore");
 		removelist.add("iron_ingot_from_blasting_iron_ore");
 		removelist.add("iron_ingot_from_blasting_deepslate_iron_ore");
+		removelist.add("iron_nugget_from_smelting");
+		removelist.add("iron_nugget_from_blasting");
 
 		removelist.add("lapis_lazuli_from_smelting_lapis_ore");
 		removelist.add("lapis_lazuli_from_smelting_deepslate_lapis_ore");

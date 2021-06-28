@@ -65,20 +65,21 @@ public class BlockDropItem implements Listener {
 		}
 
 		switch (b.getType()) {
-			case CAMPFIRE:
-				if (e.getItems().isEmpty()) return;
-				e.getItems().clear();
-
-				drop(b, new ItemStack(Material.STICK, MysteriaUtils.getRandom(1, 2)));
-				drop(b, new ItemStack(Material.OAK_PLANKS, MysteriaUtils.getRandom(2, 4)));
-			case CRAFTING_TABLE:
-				if (e.getItems().isEmpty()) return;
-				e.getItems().clear();
-
-				drop(b, new ItemStack(Material.OAK_PLANKS, MysteriaUtils.getRandom(2, 3)));
-
-				break;
-			case GRAVEL:
+//			case CAMPFIRE -> {
+//				if (e.getItems().isEmpty()) return;
+//				e.getItems().clear();
+//
+//
+//
+//				drop(b, new ItemStack(Material.STICK, MysteriaUtils.getRandom(1, 2)));
+//				drop(b, new ItemStack(Material.OAK_PLANKS, MysteriaUtils.getRandom(2, 4)));
+//			}
+//			case CRAFTING_TABLE -> {
+//				if (e.getItems().isEmpty()) return;
+//				e.getItems().clear();
+//				drop(b, new ItemStack(Material.OAK_PLANKS, MysteriaUtils.getRandom(2, 3)));
+//			}
+			case GRAVEL -> {
 				if (e.getItems().isEmpty()) return;
 				e.getItems().clear();
 
@@ -102,63 +103,57 @@ public class BlockDropItem implements Listener {
 				if (num <= (100 + modifier)) {
 					drop(b, Material.FLINT);
 				}
-
-				break;
-			case COAL_ORE:
-			case DEEPSLATE_COAL_ORE:
+			}
+			case COAL_ORE,
+					DEEPSLATE_COAL_ORE -> {
 				if (e.getItems().isEmpty()) return;
-				e.getItems().clear();
 
-				if (MysteriaUtils.chance(99)) {
-					drop(b, Material.COAL);
-				} else {
+				if (MysteriaUtils.chance(1)) {
+					e.getItems().clear();
 					drop(b, CustomItem.RADIOACTIVE_COAL.getItemStack());
 				}
-				break;
-			case COPPER_ORE:
-			case DEEPSLATE_COPPER_ORE:
-				if (e.getItems().isEmpty()) return;
-				e.getItems().clear();
-				drop(b, Material.RAW_COPPER);
-				break;
-			case LAPIS_ORE:
-			case DEEPSLATE_LAPIS_ORE:
-			case REDSTONE_ORE:
-			case DEEPSLATE_REDSTONE_ORE:
-			case NETHER_GOLD_ORE:
-			case DIAMOND_ORE:
-			case DEEPSLATE_DIAMOND_ORE:
-				if (e.getItems().isEmpty()) return;
-				e.getItems().clear();
-				drop(b, e.getBlockState().getType());
-				break;
-			case IRON_ORE:
-			case DEEPSLATE_IRON_ORE:
+			}
+//			case COPPER_ORE,
+//					DEEPSLATE_COPPER_ORE -> {
+//				if (e.getItems().isEmpty()) return;
+//				e.getItems().clear();
+//				drop(b, Material.RAW_COPPER);
+//			}
+//			case LAPIS_ORE,
+//					DEEPSLATE_LAPIS_ORE,
+//					REDSTONE_ORE,
+//					DEEPSLATE_REDSTONE_ORE,
+//					NETHER_GOLD_ORE,
+//					DIAMOND_ORE,
+//					DEEPSLATE_DIAMOND_ORE -> {
+//				if (e.getItems().isEmpty()) return;
+//				e.getItems().clear();
+//				drop(b, e.getBlockState().getType());
+//			}
+			case IRON_ORE,
+					DEEPSLATE_IRON_ORE -> {
 				if (e.getItems().isEmpty()) return;
 				if (tool.getType() == Material.STONE_PICKAXE && !CustomItem.checkCustomItem(tool, CustomItem.COPPER_PICKAXE)) {
 					e.getItems().clear();
 				}
-				break;
-			case EMERALD_ORE:
-			case DEEPSLATE_EMERALD_ORE:
+			}
+			case EMERALD_ORE, DEEPSLATE_EMERALD_ORE -> {
 				e.getItems().clear();
 				if (tool.getType() != Material.GOLDEN_PICKAXE) return;
 				drop(b, e.getBlockState().getType());
 				CustomSound.play(e.getBlock().getLocation(), CustomSound.GALAXY_STARDUST_ORE_BREAK, 1, 1);
-				break;
-			case OBSIDIAN:
+			}
+			case OBSIDIAN -> {
 				if (e.getItems().isEmpty()) return;
 				e.getItems().clear();
 				ItemStack obsidian_shards = CustomItem.OBSIDIAN_SHARD.getItemStack(MysteriaUtils.getRandom(1, 2));
 				drop(b, obsidian_shards);
-				break;
-			case EMERALD_BLOCK:
+			}
+			case EMERALD_BLOCK -> {
 				e.getItems().clear();
 				if (tool.getType() != Material.NETHERITE_PICKAXE) return;
 				drop(b, e.getBlockState().getType());
-				break;
-			default:
-				break;
+			}
 		}
 
 	}
