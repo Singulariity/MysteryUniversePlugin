@@ -23,8 +23,7 @@ public class BoatListeners implements Listener {
 			if (vehicle.isOnGround()) {
 				Material material = ((Boat) vehicle).getBoatMaterial();
 				vehicle.remove();
-				vehicle.getWorld().dropItem(vehicle.getLocation(), new ItemStack(Material.STICK, 2));
-				vehicle.getWorld().dropItem(vehicle.getLocation(), new ItemStack(material, 3));
+				vehicle.getWorld().dropItem(vehicle.getLocation(), new ItemStack(material));
 			}
 		}
 	}
