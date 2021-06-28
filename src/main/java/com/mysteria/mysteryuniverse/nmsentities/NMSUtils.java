@@ -5,6 +5,7 @@ import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.PathfinderGoalHurtByTarget;
 import net.minecraft.world.entity.ai.goal.target.PathfinderGoalNearestAttackableTarget;
 import net.minecraft.world.entity.animal.*;
+import net.minecraft.world.entity.monster.EntitySkeletonAbstract;
 import net.minecraft.world.entity.monster.EntitySpider;
 import net.minecraft.world.entity.player.EntityHuman;
 import org.bukkit.attribute.Attribute;
@@ -96,6 +97,21 @@ public class NMSUtils {
 				goalSelector.a(0, new PathfinderGoalLeapAtTarget(entitySquid, 0.4F));
 				goalSelector.a(1, new PathfinderGoalMeleeAttack(entitySquid, 1.2D, false));
 				targetSelector.a(0, new PathfinderGoalHurtByTarget(entitySquid));
+			}
+			case SKELETON, STRAY -> {
+				EntitySkeletonAbstract entitySkeleton = (EntitySkeletonAbstract) ((CraftAbstractSkeleton) entity).getHandle();
+				goalSelector = entitySkeleton.bO;
+				targetSelector = entitySkeleton.bP;
+				goalSelector.a();
+				targetSelector.a();
+				goalSelector.a(3, new PathfinderGoalAvoidTarget<>(entitySkeleton, EntityWolf.class, 6.0F, 1.0D, 1.2D));
+				goalSelector.a(5, new PathfinderGoalRandomStrollLand(entitySkeleton, 1.0D));
+				goalSelector.a(6, new PathfinderGoalLookAtPlayer(entitySkeleton, EntityHuman.class, 8.0F));
+				goalSelector.a(6, new PathfinderGoalRandomLookaround(entitySkeleton));
+				targetSelector.a(1, new PathfinderGoalHurtByTarget(entitySkeleton));
+				targetSelector.a(2, new PathfinderGoalNearestAttackableTarget<>(entitySkeleton, EntityHuman.class, true));
+				targetSelector.a(3, new PathfinderGoalNearestAttackableTarget<>(entitySkeleton, EntityIronGolem.class, true));
+				targetSelector.a(3, new PathfinderGoalNearestAttackableTarget<>(entitySkeleton, EntityTurtle.class, 10, true, false, EntityTurtle.bT));
 			}
 		}
 	}
