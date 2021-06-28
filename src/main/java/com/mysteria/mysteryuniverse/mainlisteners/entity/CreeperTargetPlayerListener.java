@@ -33,28 +33,36 @@ public class CreeperTargetPlayerListener implements Listener {
 				@Override
 				public void run() {
 
-					if (!creeper.isValid() || creeper.getTarget() == null) this.cancel();
+					if (!creeper.isValid() || creeper.getTarget() == null) {
+						this.cancel();
+						return;
+					}
 					if (i > 30) {
-						if (creeper.getTarget() == p) i = 0;
-						else this.cancel();
+						if (creeper.getTarget().equals(p)) {
+							i = 0;
+						} else {
+							this.cancel();
+							return;
+						}
 					}
 
+					if (creeper.getWorld() == p.getWorld()) {
+						double distance = creeper.getLocation().distance(p.getLocation());
+						if (distance < 3) {
 
-					double distance = creeper.getLocation().distance(p.getLocation());
-					if (distance < 3) {
+							Location loc = creeper.getLocation();
+							Location to = p.getLocation();
+							double x = loc.getX() - to.getX();
+							double y = loc.getY() - to.getY() - 2;
+							double z = loc.getZ() - to.getZ();
+							Vector velocity = new Vector(x, y, z).normalize().multiply(-0.6);
+							creeper.setVelocity(velocity);
 
-						Location loc = creeper.getLocation();
-						Location to = p.getLocation();
-						double x = loc.getX() - to.getX();
-						double y = loc.getY() - to.getY() - 2;
-						double z = loc.getZ() - to.getZ();
-						Vector velocity = new Vector(x, y, z).normalize().multiply(-0.6);
-						creeper.setVelocity(velocity);
+							creeper.ignite();
+							this.cancel();
 
-						creeper.ignite();
-						this.cancel();
-
-					} else i++;
+						} else i++;
+					}
 
 				}
 			}.runTaskTimer(MysteryUniversePlugin.getInstance(), 0, 10);

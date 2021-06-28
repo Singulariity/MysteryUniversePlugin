@@ -1,11 +1,13 @@
 package com.mysteria.mysteryuniverse.mainlisteners.entity;
 
 import com.mysteria.mysteryuniverse.MysteryUniversePlugin;
-import com.mysteria.mysteryuniverse.nmsentities.*;
+import com.mysteria.mysteryuniverse.nmsentities.CustomSkeleton;
+import com.mysteria.mysteryuniverse.nmsentities.CustomStray;
+import com.mysteria.mysteryuniverse.nmsentities.NMSUtils;
 import com.mysteria.utils.MysteriaUtils;
 import com.mysteria.utils.NamedColor;
 import net.kyori.adventure.text.Component;
-import net.minecraft.server.level.WorldServer;
+import net.minecraft.world.entity.monster.EntitySkeletonAbstract;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
@@ -21,6 +23,8 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Random;
 
 public class EntitySpawnListener implements Listener {
@@ -35,7 +39,8 @@ public class EntitySpawnListener implements Listener {
 		if (e.getEntity() instanceof ArmorStand) return;
 
 		switch (e.getSpawnReason()) {
-			case CUSTOM -> {}
+			case CUSTOM -> {
+			}
 			case EGG -> {
 				if (e.getEntity() instanceof Chicken) e.setCancelled(true);
 			}
@@ -48,19 +53,27 @@ public class EntitySpawnListener implements Listener {
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onChunkLoad(ChunkLoadEvent e) {
 		if (e.isNewChunk()) {
-			for (Entity x : e.getChunk().getEntities()) {
-				if (x instanceof LivingEntity && !(x instanceof Player)) {
-					modifySpawn((LivingEntity) x, e);
+			new BukkitRunnable() {
+				@Override
+				public void run() {
+					if (e.getChunk().isLoaded()) {
+						for (Entity x : e.getChunk().getEntities()) {
+							if (x instanceof LivingEntity && !(x instanceof Player)) {
+								modifySpawn((LivingEntity) x, e);
+							}
+						}
+					}
 				}
-			}
+			}.runTaskLater(MysteryUniversePlugin.getInstance(), 20);
 		}
 
 	}
 
 
 
-	private void modifySpawn(LivingEntity entity, Event e) {
-		EntityEquipment equipment = modifyEntity(entity, e).getEquipment();
+	private void modifySpawn(@Nonnull LivingEntity entity, @Nonnull Event e) {
+		LivingEntity finalEntity = modifyEntity(entity, e);
+		EntityEquipment equipment = finalEntity.getEquipment();
 		if (equipment != null) {
 			equipment.setHelmetDropChance(0);
 			equipment.setChestplateDropChance(0);
@@ -73,12 +86,12 @@ public class EntitySpawnListener implements Listener {
 				equipment.setItemInOffHandDropChance(0);
 			}
 		}
+		NMSUtils.setPathFinders(finalEntity);
 	}
 
 	@SuppressWarnings("ConstantConditions")
-	private LivingEntity modifyEntity(LivingEntity entity, Event e) {
-		NMSUtils.setPathFinders(entity);
-
+	@Nonnull
+	private LivingEntity modifyEntity(@Nonnull LivingEntity entity, @Nonnull Event e) {
 		EntityType entityType = entity.getType();
 
 		switch (entityType) {
@@ -90,94 +103,74 @@ public class EntitySpawnListener implements Listener {
 				} else {
 					zombie = (Zombie) entity;
 				}
-				if (MysteriaUtils.chance(15)) {
-					this.giveEffect(zombie, PotionEffectType.SPEED, new Random().nextInt(2));
-				} else if (MysteriaUtils.chance(15)) {
-					if (!zombie.isAdult()) zombie.setAdult();
-					zombie.getEquipment().setItemInMainHand(new ItemStack(Material.WOODEN_AXE));
-				}
-				if (MysteriaUtils.chance(20)) {
-					this.setKnockbackResistance(zombie, new Random().nextDouble());
-				}
-				if (MysteriaUtils.chance(4)) {
-					this.giveRandomArmor(zombie);
-				}
-				this.setHealth(zombie, 32.0);
+
+				EntityBuilder.builder(zombie)
+						.setHealth(32)
+						.setKnockbackResistance(new Random().nextDouble(), 20)
+						.giveArmor(4)
+						.giveEffect(PotionEffectType.SPEED, MysteriaUtils.getRandom(0, 1), 15)
+						.setMainHand(Material.WOODEN_AXE, 15);
 				zombie.setShouldBurnInDay(false);
+
 				return zombie;
 			}
 			case SKELETON, STRAY -> {
-				AbstractSkeleton skeleton;
 				this.removeEntity(e, entity);
+				EntitySkeletonAbstract skeletonNMS;
 				if (entityType == EntityType.STRAY || (entityType == EntityType.SKELETON && MysteriaUtils.chance(15))) {
-					CustomStray customStray = new CustomStray(entity.getLocation());
-					WorldServer world = ((CraftWorld) entity.getWorld()).getHandle();
-					world.addEntity(customStray, CreatureSpawnEvent.SpawnReason.CUSTOM);
-
-					skeleton = (AbstractSkeleton) customStray.getBukkitEntity();
-
+					skeletonNMS = new CustomStray(entity.getLocation());
 				} else {
-					CustomSkeleton customSkeleton = new CustomSkeleton(entity.getLocation());
-					WorldServer world = ((CraftWorld) entity.getWorld()).getHandle();
-					world.addEntity(customSkeleton, CreatureSpawnEvent.SpawnReason.CUSTOM);
-
-					skeleton = (AbstractSkeleton) customSkeleton.getBukkitEntity();
+					skeletonNMS = new CustomSkeleton(entity.getLocation());
 				}
-				EntityEquipment equipment = skeleton.getEquipment();
+				((CraftWorld) entity.getWorld()).getHandle().addEntity(skeletonNMS, CreatureSpawnEvent.SpawnReason.CUSTOM);
+				AbstractSkeleton skeleton = (AbstractSkeleton) skeletonNMS.getBukkitEntity();
+
+				EntityBuilder builder = EntityBuilder.builder(skeleton)
+						.setHealth(30)
+						.giveEffect(PotionEffectType.SPEED, 0, 15)
+						.giveArmor(4);
+
 				int num = new Random().nextInt(100);
 				if (entity.getLocation().getY() < 40 && num < 10) {
 
-					equipment.setItemInMainHand(new ItemStack(Material.STONE_PICKAXE));
-					equipment.setHelmet(new ItemStack(Material.LEATHER_HELMET));
-					skeleton.customName(Component.text("Skeleton Miner", NamedColor.BLUEBERRY_SODA));
+					builder.setMainHand(Material.STONE_PICKAXE)
+							.setHelmet(Material.LEATHER_HELMET)
+							.setName(Component.text("Skeleton Miner", NamedColor.BLUEBERRY_SODA));
 
 				} else if (num < 28) {
 
 					if (MysteriaUtils.chance(90)) {
-						ItemStack tool;
-						if (num < 25) {
-							tool = new ItemStack(Material.WOODEN_SWORD);
-						} else {
-							tool = new ItemStack(Material.STONE_SWORD);
-						}
-						equipment.setItemInMainHand(tool);
+						Material tool = num < 25 ? Material.WOODEN_SWORD : Material.STONE_SWORD;
+						builder.setMainHand(tool);
 					} else {
-						equipment.setItemInMainHand(new ItemStack(Material.STONE_SWORD));
-						equipment.setItemInOffHand(new ItemStack(Material.STONE_SWORD));
+						builder.setMainHand(Material.STONE_SWORD)
+								.setOffHand(Material.STONE_SWORD);
 					}
 
 				} else {
-					equipment.setItemInMainHand(new ItemStack(Material.BOW));
+					builder.setMainHand(Material.BOW);
 				}
-				if (MysteriaUtils.chance(15)) {
-					this.giveEffect(skeleton, PotionEffectType.SPEED, 0);
-				}
-				if (MysteriaUtils.chance(4)) {
-					this.giveRandomArmor(skeleton);
-				}
-				this.setHealth(skeleton, 30.0);
 				return skeleton;
 			}
 			case SPIDER -> {
-				this.giveEffect(entity, PotionEffectType.SPEED, 0);
-				this.setHealth(entity, 24.0);
+				EntityBuilder.builder(entity)
+						.giveEffect(PotionEffectType.SPEED, 0)
+						.setHealth(24);
+
 				if (entity.getPassengers().size() == 0 && MysteriaUtils.chance(5)) {
 					new BukkitRunnable() {
 						@Override
 						public void run() {
-							Skeleton passanger = (Skeleton) entity.getLocation().getWorld()
+							Skeleton passenger = (Skeleton) entity.getLocation().getWorld()
 									.spawnEntity(entity.getLocation(), EntityType.SKELETON, CreatureSpawnEvent.SpawnReason.NATURAL);
-							entity.addPassenger(passanger);
+							entity.addPassenger(passenger);
 						}
 					}.runTaskLater(MysteryUniversePlugin.getInstance(), 1);
 				}
-				return entity;
 			}
-			case CAVE_SPIDER -> {
-				this.giveEffect(entity, PotionEffectType.SPEED, 0);
-				this.setHealth(entity, 16.0);
-				return entity;
-			}
+			case CAVE_SPIDER -> EntityBuilder.builder(entity)
+					.giveEffect(PotionEffectType.SPEED, 0)
+					.setHealth(16);
 			case CREEPER -> {
 				Creeper creeper = (Creeper) entity;
 
@@ -196,164 +189,277 @@ public class EntitySpawnListener implements Listener {
 
 				// Default Max Health: 20
 				// Setting max health to 28
-				this.setHealth(creeper, 28.0);
-				return creeper;
+				EntityBuilder.builder(creeper)
+						.setHealth(28);
 			}
 			case PHANTOM -> {
 				Phantom phantom = (Phantom) entity;
 				phantom.setSize(MysteriaUtils.getRandom(1, 4));
-				this.setHealth(phantom, 26.0);
-				this.giveEffect(phantom, PotionEffectType.SPEED, 0);
-				return phantom;
+
+				EntityBuilder.builder(phantom)
+						.setHealth(26)
+						.giveEffect(PotionEffectType.SPEED, 0);
 			}
 			case DROWNED -> {
 				Drowned drowned = (Drowned) entity;
+				drowned.setShouldBurnInDay(false);
+
+				EntityBuilder builder = EntityBuilder.builder(drowned)
+						.setHealth(32);
+
 				if (MysteriaUtils.chance(5)) {
-					this.giveEffect(drowned, PotionEffectType.INVISIBILITY, 0);
+					builder.giveEffect(PotionEffectType.INVISIBILITY, 0);
 					drowned.setSilent(true);
 				} else if (MysteriaUtils.chance(4)) {
-					this.giveRandomArmor(drowned);
+					builder.giveArmor(100);
 				}
-				this.setHealth(drowned, 32.0);
-				drowned.setShouldBurnInDay(false);
-				return drowned;
 			}
 			case VINDICATOR, PILLAGER, EVOKER, ILLUSIONER -> {
-				this.setHealth(entity, 36.0);
 				entity.setCanPickupItems(false);
-				return entity;
+				EntityBuilder.builder(entity)
+						.setHealth(36);
 			}
-			case ZOMBIFIED_PIGLIN, PIGLIN -> {
-				this.setHealth(entity, 40.0);
-				this.giveEffect(entity, PotionEffectType.JUMP, 0);
-				return entity;
-			}
-			case WITCH -> {
-				this.setHealth(entity, 50.0);
-				return entity;
-			}
+			case ZOMBIFIED_PIGLIN, PIGLIN -> EntityBuilder.builder(entity)
+					.setHealth(40)
+					.giveEffect(PotionEffectType.JUMP, 0);
+			case WITCH -> EntityBuilder.builder(entity)
+					.setHealth(50);
 			case GUARDIAN -> {
-				this.giveEffect(entity, PotionEffectType.SPEED, 0);
+				EntityBuilder builder = EntityBuilder.builder(entity)
+						.giveEffect(PotionEffectType.SPEED, 0);
+
 				if (MysteriaUtils.chance(5)) {
-					this.giveEffect(entity, PotionEffectType.INVISIBILITY, 0);
+					builder.giveEffect(PotionEffectType.INVISIBILITY, 0);
 					entity.setSilent(true);
 				}
-				return entity;
 			}
-			case ELDER_GUARDIAN -> {
-				this.setHealth(entity, 240.0);
-				return entity;
-			}
+			case ELDER_GUARDIAN -> EntityBuilder.builder(entity)
+					.setHealth(240);
 			default -> {
 				if (entity instanceof Animals) {
 
 					((Breedable) entity).setBreed(false);
 
 					switch (entity.getType()) {
-						case CHICKEN:
-						case OCELOT:
-						case CAT:
-						case PARROT:
-						case FOX:
-							this.setHealth(entity, 16.0);
-							return entity;
-
-						case RABBIT:
+						case CHICKEN,
+								OCELOT,
+								CAT,
+								PARROT,
+								FOX -> EntityBuilder.builder(entity)
+								.setHealth(16);
+						case RABBIT -> {
 							Rabbit rabbit = (Rabbit) entity;
+							EntityBuilder builder = EntityBuilder.builder(rabbit);
 							if (MysteriaUtils.chance(3)) {
 								rabbit.setRabbitType(Rabbit.Type.THE_KILLER_BUNNY);
-								this.setHealth(entity, 30.0);
-								this.giveEffect(rabbit, PotionEffectType.JUMP, 1);
+								builder.setHealth(30)
+										.giveEffect(PotionEffectType.JUMP, 2);
 							} else {
-								this.setHealth(rabbit, 12.0);
+								builder.setHealth(12);
 							}
-							return rabbit;
-
-						case POLAR_BEAR:
-						case PANDA:
-							this.setHealth(entity, 60.0);
-							return entity;
-
-						case TURTLE:
-							this.setHealth(entity, 40.0);
-							return entity;
-						case COW:
-						case MUSHROOM_COW:
-						case SHEEP:
-						case WOLF:
-						case PIG:
-						case DOLPHIN:
-						case SQUID:
-							this.setHealth(entity, 24.0);
-							return entity;
-						default:
-							break;
-
+						}
+						case POLAR_BEAR,
+								PANDA -> EntityBuilder.builder(entity)
+								.setHealth(60);
+						case TURTLE -> EntityBuilder.builder(entity)
+								.setHealth(40);
+						case COW,
+								MUSHROOM_COW,
+								SHEEP,
+								WOLF,
+								PIG,
+								DOLPHIN,
+								SQUID,
+								GLOW_SQUID -> EntityBuilder.builder(entity)
+								.setHealth(24);
 					}
 
 				} else if (entity instanceof Fish) {
-					this.setHealth(entity, 10);
+					EntityBuilder.builder(entity)
+							.setHealth(10);
 				}
-				return entity;
 			}
 		}
 
+		return entity;
 	}
 
 
-	@SuppressWarnings("ConstantConditions")
-	private void giveRandomArmor(LivingEntity entity) {
-		EntityEquipment equipment = entity.getEquipment();
 
-		if (equipment == null) return;
 
-		String material = switch (new Random().nextInt(6) + 1) {
-			case 6 -> "NETHERITE";
-			case 5 -> "DIAMOND";
-			case 4 -> "IRON";
-			case 3 -> "CHAINMAIL";
-			case 2 -> "GOLDEN";
-			default -> "LEATHER";
-		};
 
-		equipment.setHelmet(new ItemStack(Material.getMaterial(material + "_HELMET")));
-		equipment.setChestplate(new ItemStack(Material.getMaterial(material + "_CHESTPLATE")));
-		if (MysteriaUtils.chance(40)) {
-			equipment.setLeggings(new ItemStack(Material.getMaterial(material + "_LEGGINGS")));
-			equipment.setBoots(new ItemStack(Material.getMaterial(material + "_BOOTS")));
-		}
-
-	}
-
-	private void setKnockbackResistance(LivingEntity entity, double value) {
-		AttributeInstance attribute = entity.getAttribute(Attribute.GENERIC_KNOCKBACK_RESISTANCE);
-		if (attribute == null) return;
-
-		attribute.setBaseValue(value);
-	}
-
-	private void setHealth(LivingEntity entity, double newHealth) {
-		new BukkitRunnable() {
-			@Override
-			public void run() {
-				AttributeInstance attribute = entity.getAttribute(Attribute.GENERIC_MAX_HEALTH);
-				if (attribute == null) return;
-
-				attribute.setBaseValue(newHealth);
-				entity.setHealth(newHealth);
-			}
-		}.runTaskLater(MysteryUniversePlugin.getInstance(), 2);
-	}
-
-	private void giveEffect(LivingEntity entity, PotionEffectType type, int amplifier) {
-		entity.addPotionEffect(new PotionEffect(type, Integer.MAX_VALUE, amplifier, true, false));
-	}
-
-	private void removeEntity(Event e, LivingEntity entity) {
+	private void removeEntity(@Nonnull Event e, @Nonnull LivingEntity entity) {
 		if (e instanceof Cancellable) {
 			((Cancellable) e).setCancelled(true);
 		}
 		else entity.remove();
+	}
+
+	@SuppressWarnings("unused")
+	private static class EntityBuilder {
+
+		private final LivingEntity entity;
+
+		private EntityBuilder(@Nonnull LivingEntity entity) {
+			this.entity = entity;
+		}
+
+		public static EntityBuilder builder(@Nonnull LivingEntity entity) {
+			return new EntityBuilder(entity);
+		}
+
+		@Nonnull
+		public LivingEntity getEntity() {
+			return entity;
+		}
+
+		@Nonnull
+		public EntityBuilder giveEffect(@Nonnull PotionEffectType type, int amplifier) {
+			return giveEffect(type, amplifier, 100);
+		}
+
+		@Nonnull
+		public EntityBuilder giveEffect(@Nonnull PotionEffectType type, int amplifier, int chance) {
+			if (MysteriaUtils.chance(chance)) {
+				entity.addPotionEffect(new PotionEffect(type, Integer.MAX_VALUE, amplifier, true, false));
+			}
+			return this;
+		}
+
+		@Nonnull
+		public EntityBuilder setHealth(double newHealth) {
+			new BukkitRunnable() {
+				@Override
+				@SuppressWarnings("ConstantConditions")
+				public void run() {
+					AttributeInstance attribute = entity.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+					attribute.setBaseValue(newHealth);
+					entity.setHealth(newHealth);
+				}
+			}.runTaskLater(MysteryUniversePlugin.getInstance(), 2);
+			return this;
+		}
+
+		@Nonnull
+		@SuppressWarnings("ConstantConditions")
+		public EntityBuilder setKnockbackResistance(double value, int chance) {
+			if (MysteriaUtils.chance(chance)) {
+				AttributeInstance attribute = entity.getAttribute(Attribute.GENERIC_KNOCKBACK_RESISTANCE);
+				if (attribute == null) {
+					entity.registerAttribute(Attribute.GENERIC_KNOCKBACK_RESISTANCE);
+				}
+				attribute.setBaseValue(value);
+			}
+			return this;
+		}
+
+		@Nonnull
+		@SuppressWarnings("ConstantConditions")
+		public EntityBuilder giveArmor(int chance) {
+			if (MysteriaUtils.chance(chance)) {
+				EntityEquipment equipment = entity.getEquipment();
+
+				if (equipment != null) {
+					String material = switch (new Random().nextInt(6) + 1) {
+						case 6 -> "NETHERITE";
+						case 5 -> "DIAMOND";
+						case 4 -> "IRON";
+						case 3 -> "CHAINMAIL";
+						case 2 -> "GOLDEN";
+						default -> "LEATHER";
+					};
+
+					equipment.setHelmet(new ItemStack(Material.getMaterial(material + "_HELMET")));
+					equipment.setChestplate(new ItemStack(Material.getMaterial(material + "_CHESTPLATE")));
+					if (MysteriaUtils.chance(40)) {
+						equipment.setLeggings(new ItemStack(Material.getMaterial(material + "_LEGGINGS")));
+						equipment.setBoots(new ItemStack(Material.getMaterial(material + "_BOOTS")));
+					}
+				}
+			}
+			return this;
+		}
+
+		@Nonnull
+		public EntityBuilder setMainHand(@Nonnull Material material) {
+			return setMainHand(material, 100);
+		}
+
+		@Nonnull
+		public EntityBuilder setMainHand(@Nonnull Material material, int chance) {
+			if (MysteriaUtils.chance(chance)) {
+				return setMainHand(new ItemStack(material));
+			}
+			return this;
+		}
+
+		@Nonnull
+		public EntityBuilder setMainHand(@Nonnull ItemStack item) {
+			EntityEquipment equipment = entity.getEquipment();
+			if (equipment != null) {
+				equipment.setItemInMainHand(item);
+			}
+			return this;
+		}
+
+		@Nonnull
+		public EntityBuilder setOffHand(@Nonnull Material material) {
+			return setOffHand(new ItemStack(material));
+		}
+
+		@Nonnull
+		public EntityBuilder setOffHand(@Nonnull ItemStack item) {
+			EntityEquipment equipment = entity.getEquipment();
+			if (equipment != null) {
+				equipment.setItemInOffHand(item);
+			}
+			return this;
+		}
+
+		@Nonnull
+		public EntityBuilder setHelmet(@Nonnull Material material) {
+			EntityEquipment equipment = entity.getEquipment();
+			if (equipment != null) {
+				equipment.setHelmet(new ItemStack(material));
+			}
+			return this;
+		}
+
+		@Nonnull
+		public EntityBuilder setChestplate(@Nonnull Material material) {
+			EntityEquipment equipment = entity.getEquipment();
+			if (equipment != null) {
+				equipment.setChestplate(new ItemStack(material));
+			}
+			return this;
+		}
+
+		@Nonnull
+		public EntityBuilder setLeggings(@Nonnull Material material) {
+			EntityEquipment equipment = entity.getEquipment();
+			if (equipment != null) {
+				equipment.setLeggings(new ItemStack(material));
+			}
+			return this;
+		}
+
+		@Nonnull
+		public EntityBuilder setBoots(@Nonnull Material material) {
+			EntityEquipment equipment = entity.getEquipment();
+			if (equipment != null) {
+				equipment.setBoots(new ItemStack(material));
+			}
+			return this;
+		}
+
+		@Nonnull
+		public EntityBuilder setName(@Nullable Component name) {
+			entity.customName(name);
+			return this;
+		}
+
+
+
 	}
 
 

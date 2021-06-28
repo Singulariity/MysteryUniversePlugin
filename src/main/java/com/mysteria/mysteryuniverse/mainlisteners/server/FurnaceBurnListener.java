@@ -34,7 +34,11 @@ public class FurnaceBurnListener implements Listener {
 	@EventHandler(ignoreCancelled = true)
 	public void onFurnaceUnLit(BlockPhysicsEvent e) {
 
+
+
 		if (e.getBlock().getState() instanceof Furnace) {
+			if (!e.getBlock().equals(e.getSourceBlock())) return;
+			
 			Furnace furnace = (Furnace) e.getBlock().getState();
 
 			if (furnace.getBlockData() instanceof org.bukkit.block.data.type.Furnace) {
@@ -78,15 +82,19 @@ public class FurnaceBurnListener implements Listener {
 			ItemStack fuel = e.getFuel();
 			blockState.getInventory().setFuel(null);
 			Directional directional = (Directional) block.getBlockData();
-			blockState.getWorld().dropItem(block.getRelative(directional.getFacing()).getLocation().add(0.5, 0.3, 0.5), fuel).setVelocity(new Vector());
+			blockState.getWorld().dropItem(block.getRelative(directional.getFacing()).getLocation().add(0.5, 0.3, 0.5), fuel)
+					.setVelocity(new Vector());
 			blockState.getWorld().playSound(blockState.getLocation(), Sound.ENTITY_CHICKEN_EGG, 1, 2);
 
 			for (HumanEntity humanEntity : blockState.getInventory().getViewers()) {
-				MysteriaUtils.sendMessageRed(humanEntity, "You have to lit the furnace before using.");
-				Component component = Component.text("Put a ", NamedColor.CARMINE_PINK)
-						.append(MysteriaUtils.showItemComponent(CustomItem.FLINT_AND_COAL.getItemStack()))
-						.append(Component.text(" to fuel slot, like a normal fuel.", NamedColor.CARMINE_PINK));
-				MysteriaUtils.sendMessage(humanEntity, component);
+				MysteriaUtils.sendMessage(humanEntity,
+						Component.translatable("mystery.message.furnace.lit_information", NamedColor.CARMINE_PINK)
+				);
+				MysteriaUtils.sendMessage(humanEntity,
+						Component.translatable("mystery.message.furnace.flint_and_coal", NamedColor.CARMINE_PINK,
+								MysteriaUtils.showItemComponent(CustomItem.FLINT_AND_COAL.getItemStack())
+						)
+				);
 			}
 			return;
 		}

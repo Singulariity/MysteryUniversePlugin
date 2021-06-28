@@ -33,6 +33,7 @@ import java.util.UUID;
 public class CustomItemUseListener implements Listener {
 
 	private final Map<UUID, Long> COOLDOWNS = new HashMap<>();
+	private final Map<UUID, Long> BOOK_CONFIRMS = new HashMap<>();
 	private final Map<String, Case> CASES = new HashMap<>();
 
 	public CustomItemUseListener() {
@@ -108,8 +109,7 @@ public class CustomItemUseListener implements Listener {
 		Player p = e.getPlayer();
 
 		switch (e.getCustomItem()) {
-			case BLOODSTONE:
-
+			case BLOODSTONE -> {
 				AttributeInstance att = p.getAttribute(Attribute.GENERIC_MAX_HEALTH);
 				if (att == null) break;
 				double maxHealth = att.getBaseValue();
@@ -129,26 +129,68 @@ public class CustomItemUseListener implements Listener {
 				p.setHealth(1);
 				e.getItem().setAmount(e.getItem().getAmount() - 1);
 				e.setUsed(true);
-
-				break;
-			case HEART_OF_VOID:
+			}
+			case HEART_OF_VOID -> {
 				EndManager endManager = MysteryUniversePlugin.getEndManager();
-				if (e.getPlayer().getWorld() == endManager.getWorld()) {
-					if (endManager.respawnDragon(e.getPlayer())) {
+				if (p.getWorld() == endManager.getWorld()) {
+					if (endManager.respawnDragon(p)) {
 						e.getItem().setAmount(e.getItem().getAmount() - 1);
 						e.setUsed(true);
 					}
 				}
-				break;
-			case FORBIDDEN_BOOK:
-			case BOOK_OF_REGRESSION:
-				break;
-			case PRESENT:
+			}
+			case FORBIDDEN_BOOK -> {
+				if (p.getWorld().getName().equals("world")) {
+					long cd = BOOK_CONFIRMS.getOrDefault(p.getUniqueId(), 0L);
+					if (!MysteriaUtils.checkCooldown(cd)) {
+						Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+								String.format("rtp %s world_nether", p.getName()));
+						e.getItem().setAmount(e.getItem().getAmount() - 1);
+						e.setUsed(true);
+						BOOK_CONFIRMS.remove(p.getUniqueId());
+					} else {
+						p.sendMessage(Component.text(" "));
+						MysteriaUtils.sendMessageYellow(p, Component.translatable("mystery.message.forbidden_book.confirm"));
+						MysteriaUtils.sendMessageYellow(p, Component.translatable("mystery.message.forbidden_book.confirm_2"));
+						MysteriaUtils.sendMessageRed(p,
+								Component.translatable("mystery.message.forbidden_book.confirm_3",
+										MysteriaUtils.showItemComponent(CustomItem.BOOK_OF_REGRESSION.getItemStack())));
+						p.sendMessage(Component.text(" "));
+						BOOK_CONFIRMS.put(p.getUniqueId(), MysteriaUtils.createCooldown(10));
+					}
+				} else {
+					MysteriaUtils.sendMessageDarkRed(p, Component.translatable("mystery.message.item.cannot_use.forbidden_world"));
+				}
+			}
+			case BOOK_OF_REGRESSION -> {
+				if (p.getWorld().getName().equals("world_nether")) {
+					long cd = BOOK_CONFIRMS.getOrDefault(p.getUniqueId(), 0L);
+					if (!MysteriaUtils.checkCooldown(cd)) {
+						Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+								String.format("rtp %s world", p.getName()));
+						e.getItem().setAmount(e.getItem().getAmount() - 1);
+						e.setUsed(true);
+						BOOK_CONFIRMS.remove(p.getUniqueId());
+					} else {
+						p.sendMessage(Component.text(" "));
+						MysteriaUtils.sendMessageYellow(p, Component.translatable("mystery.message.book_of_regression.confirm"));
+						MysteriaUtils.sendMessageYellow(p, Component.translatable("mystery.message.book_of_regression.confirm_2"));
+						MysteriaUtils.sendMessageRed(p,
+								Component.translatable("mystery.message.book_of_regression.confirm_3",
+										MysteriaUtils.showItemComponent(CustomItem.FORBIDDEN_BOOK.getItemStack())));
+						p.sendMessage(Component.text(" "));
+						BOOK_CONFIRMS.put(p.getUniqueId(), MysteriaUtils.createCooldown(10));
+					}
+				} else {
+					MysteriaUtils.sendMessageDarkRed(p, Component.translatable("mystery.message.item.cannot_use.forbidden_world"));
+				}
+			}
+			case PRESENT -> {
 				if (openCase(e.getPlayer(), "Present")) {
 					e.getItem().setAmount(e.getItem().getAmount() - 1);
 					e.setUsed(true);
 				}
-				break;
+			}
 		}
 
 	}
